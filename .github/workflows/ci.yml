@@ -81,8 +81,20 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci --include=optional
+      - name: Check for installed Playwright
+        id: playwright-package
+        shell: bash
+        run: |
+          if node -e "require.resolve('@playwright/test')"; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Playwright is not installed in this repository; skipping browser tests."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
       - run: npx playwright install --with-deps chromium
+        if: steps.playwright-package.outputs.available == 'true'
       - run: npx playwright test
+        if: steps.playwright-package.outputs.available == 'true'
       - name: Upload Playwright traces on failure
         if: failure()
         uses: actions/upload-artifact@v6
