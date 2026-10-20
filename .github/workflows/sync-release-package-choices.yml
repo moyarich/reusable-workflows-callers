@@ -2,17 +2,6 @@ name: Sync release package choices
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - package.json
-      - packages/**/package.json
-      - .github/workflows/release.yml
-      - .github/workflows/release-draft.yml
-      - .github/workflows/publish.yml
-      - .github/workflows/restore-release.yml
-      - .github/workflows/reset-release.yml
-      - .github/workflows/sync-release-package-choices.yml
 
 permissions: {}
 
