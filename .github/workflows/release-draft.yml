@@ -104,7 +104,7 @@ jobs:
           needs.select-packages.outputs.has-packages == 'true' }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.select-packages.outputs.matrix || 
+      matrix: ${{ fromJSON(needs.select-packages.outputs.matrix ||
         '{"include":[]}') }}
     concurrency:
       group: draft-package-${{ github.repository }}-${{ matrix.directory }}
