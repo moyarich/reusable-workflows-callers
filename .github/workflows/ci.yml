@@ -13,8 +13,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   lint-workflows:
