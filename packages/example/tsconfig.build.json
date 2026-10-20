@@ -6,10 +6,6 @@
     "emitDeclarationOnly": false,
     "rootDir": "src"
   },
-  "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "tests/**"
-  ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["tests/**"]
 }
