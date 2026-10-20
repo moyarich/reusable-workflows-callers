@@ -1,33 +1,88 @@
 name: Check distribution
 
+run-name: >-
+  Check dist · ${{ inputs.packages }}
+
 on:
   workflow_dispatch:
     inputs:
-      dist-path:
-        description: Path to generated package distribution
+      packages:
+        description: Package directory/name or all discovered workspace packages
         type: string
         required: true
-        default: packages/example/dist/
-      build-command:
-        description: Command to build the selected distribution
-        type: string
+        default: all
+      workspace-tools-source:
+        description: Workspace Tools CLI source for discovery
+        type: choice
         required: true
-        default: npm run build --workspace @template/example
-      artifact-name:
-        description: Artifact name for the distribution
-        type: string
-        required: true
-        default: example-dist
+        default: auto
+        options:
+          - auto
+          - checkout:current
+          - checkout:upstream;branch:main
+          - registry:npm:latest
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
+  discover-packages:
+    name: Discover workspace packages
+    permissions:
+      contents: read
+    uses: moyarich/reusable-workflows/.github/workflows/reusable_discover-packages.yml@main
+    with:
+      packages-directory: packages
+      use-workspaces: true
+      require-build-script: true
+      include-private: true
+      workspace-tools-source: ${{ inputs.workspace-tools-source }}
+
+  select-packages:
+    name: Select distributions
+    needs: discover-packages
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      matrix: ${{ steps.select.outputs.matrix }}
+      has-packages: ${{ steps.select.outputs.has-packages }}
+    steps:
+      - name: Filter discovered packages
+        id: select
+        shell: bash
+        env:
+          DISCOVERED: ${{ needs.discover-packages.outputs.packages }}
+          PACKAGES: ${{ inputs.packages }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const report = JSON.parse(process.env.DISCOVERED);
+          const selected = process.env.PACKAGES.trim();
+          const eligible = report.included;
+          const packages = selected === 'all'
+            ? eligible
+            : eligible.filter(p => p.directory === selected || p.name === selected);
+          if (packages.length === 0) {
+            console.error('::error title=No matching package::Select a discovered package directory/name or all.');
+            process.exit(1);
+          }
+          const matrix = JSON.stringify({include: packages});
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'matrix=' + matrix + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'has-packages=true\n');
+          console.log('Selected ' + packages.map(p => p.directory).join(', '));
+          NODE
+
   check-dist:
-    name: Check package distribution
+    name: "dist: ${{ matrix.name }}"
+    needs: select-packages
+    if: ${{ needs.select-packages.outputs.has-packages == 'true' }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.select-packages.outputs.matrix) }}
+    permissions:
+      contents: read
     uses: moyarich/reusable-workflows/.github/workflows/reusable_check-dist.yml@main
     with:
-      dist-path: ${{ inputs.dist-path }}
-      build-command: ${{ inputs.build-command }}
+      dist-path: ${{ format('{0}/dist/', matrix.directory) }}
+      build-command: ${{ format('npm run build --workspace {0}', matrix.name) }}
+      artifact-name: ${{ format('dist-{0}', strategy.job-index) }}
       node-version: "24"
-      artifact-name: ${{ inputs.artifact-name }}
