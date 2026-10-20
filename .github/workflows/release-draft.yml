@@ -11,8 +11,9 @@ on:
         description: Workspace Tools CLI source for package discovery
         type: choice
         required: true
-        default: checkout:upstream;branch:main
+        default: auto
         options:
+          - auto
           - checkout:current
           - checkout:upstream;branch:main
           - registry:npm:latest
@@ -80,18 +81,7 @@ jobs:
       use-workspaces: true
       include-root-package: false
       require-publish-config: false
-      workspace-tools-source: >-
-        ${{
-          (
-            github.event_name == 'workflow_dispatch' &&
-            inputs.workspace-tools-source
-          ) ||
-          (
-            github.repository == 'moyarich/workspace-tools' &&
-            'checkout:current'
-          ) ||
-          'checkout:upstream;branch:main'
-        }}
+      workspace-tools-source: ${{ inputs.workspace-tools-source || 'auto' }}
 
   select-packages:
     name: Select packages for drafting
