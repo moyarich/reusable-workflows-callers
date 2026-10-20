@@ -6,6 +6,14 @@ run-name: >-
 on:
   workflow_dispatch:
     inputs:
+      package:
+        description: Select a publishable workspace package
+        required: true
+        type: choice
+        default: all
+        options:
+          - all
+          - packages/example
       registry:
         description: Extension registry
         type: choice
@@ -34,7 +42,17 @@ on:
 
 permissions: {}
 
+
 jobs:
+  dispatch-input-summary:
+    name: "job: Workflow parameters"
+    permissions:
+      contents: read
+    uses: moyarich/reusable-workflows/.github/workflows/reusable_dispatch-input-summary.yml@main
+    with:
+      parameters-json: ${{ github.event_name == 'workflow_dispatch' && toJSON(inputs) || '{}' }}
+      heading: "release-draft · Run parameters"
+
   publish:
     permissions:
       contents: write
@@ -45,7 +63,7 @@ jobs:
       target-branch: ${{ github.ref_name }}
       install-command: npm install --include=optional
       check-command: npm run package
-      artifact-glob: packages/colorshower/artifacts/*.vsix
+      artifact-glob: ${{ inputs.registries-file }}/artifacts/*.vsix
       artifact-name: colorshower-vsix
       registry: ${{ inputs.registry }}
       registries-file: ${{ inputs.registries-file }}
