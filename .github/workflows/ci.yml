@@ -37,12 +37,6 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci --include=optional
-      - name: Preview release-draft formatting
-        run: |
-          npx prettier --write .github/workflows/release-draft.yml
-          echo '___BEGIN_PRETTIER_RELEASE_DRAFT___'
-          cat .github/workflows/release-draft.yml
-          echo '___END_PRETTIER_RELEASE_DRAFT___'
       - run: npm run checks
       - run: npm run pack:check
       - name: Summary
