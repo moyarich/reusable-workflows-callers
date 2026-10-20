@@ -40,3 +40,17 @@ The Workspace Tools CLI source in migrated callers is `checkout:upstream;branch:
 ## Adapting this template
 
 Add packages under `packages/*`, applications under `apps/*`, and their own `build`, `typecheck`, and `test` scripts. Keep reusable logic in packages and application-specific examples in playgrounds. Configure registry publishing only for real release packages.
+
+## Tests and component stories
+
+The template includes a root `vitest.config.ts`, `playwright.config.ts`, and `.storybook/` configuration. Vitest discovers `*.test.*` files in root, package and application test folders; Playwright discovers `*.spec.*` files and starts the Vite playground on port 4173. Storybook scans stories in application, package and source directories.
+
+```sh
+npm run test:unit
+npx playwright install chromium
+npx playwright test
+npm run storybook
+npm run build:storybook
+```
+
+The CI caller runs Playwright directly on `main`, manual dispatch and PRs changing spec/config files. Projects can change their Playwright fixtures and `webServer` settings in `playwright.config.ts`; no CI-specific package script is required. Storybook is a development-only workspace tool and is not included in the published example package.

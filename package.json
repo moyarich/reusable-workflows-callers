@@ -16,7 +16,12 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "checks": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
-    "pack:check": "npm pack --workspaces --dry-run"
+    "pack:check": "npm pack --workspaces --dry-run",
+    "test:unit": "vitest run --config vitest.config.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "storybook": "storybook dev",
+    "build:storybook": "storybook build"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -33,7 +38,10 @@
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "@playwright/test": "^1.56.0",
+    "@storybook/react-vite": "^9.1.0",
+    "storybook": "^9.1.0"
   },
   "workspaces": [
     "packages/*",
