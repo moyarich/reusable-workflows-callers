@@ -79,7 +79,7 @@ jobs:
       packages-directory: packages
       use-workspaces: true
       include-root-package: false
-      require-publish-config: true
+      require-publish-config: false
       workspace-tools-source: >-
         ${{
           (
