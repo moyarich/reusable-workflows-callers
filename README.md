@@ -4,13 +4,13 @@ Starter template for npm-workspaces projects modeled on recent `moyarich` reposi
 
 ## Structure
 
-| Path | Purpose |
-| --- | --- |
-| `packages/example/` | Buildable TypeScript library with Vitest tests |
-| `apps/playground/` | Vite + React playground consuming example library |
+| Path                 | Purpose                                                             |
+| -------------------- | ------------------------------------------------------------------- |
+| `packages/example/`  | Buildable TypeScript library with Vitest tests                      |
+| `apps/playground/`   | Vite + React playground consuming example library                   |
 | `.github/workflows/` | CI, release, publishing, maintenance, and reusable workflow callers |
-| `eslint.config.mjs` | Shared ESLint flat config and Prettier compatibility |
-| `tsconfig.json` | Shared TypeScript defaults |
+| `eslint.config.mjs`  | Shared ESLint flat config and Prettier compatibility                |
+| `tsconfig.json`      | Shared TypeScript defaults                                          |
 
 ## Getting started
 
