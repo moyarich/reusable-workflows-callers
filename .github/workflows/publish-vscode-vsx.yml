@@ -1,16 +1,20 @@
 name: Publish VS Code extension
 
 run-name: >-
-  VSIX · ${{ inputs.package }} · ${{ inputs.registry }} · dry-run=${{ inputs.dry-run }}
+  VSIX · ${{ inputs.package }} · ${{ inputs.registry }} · dry-run=${{ inputs.dry-run
+  }}
 
 on:
   workflow_dispatch:
     inputs:
       package:
-        description: Extension directory containing package.json (one extension per run)
+        description: Select a publishable workspace package
         required: true
-        type: string
-        default: .
+        type: choice
+        default: all
+        options:
+          - all
+          - packages/example
       registry:
         description: Extension registry
         type: choice
@@ -25,11 +29,13 @@ on:
         type: string
         default: ""
       release-tag:
-        description: Existing release tag (empty uses <package>@<version>, or v<version> for root)
+        description: Existing release tag (empty uses <package>@<version>, or
+          v<version> for root)
         type: string
         default: ""
       attach-release-asset:
-        description: Attach packaged VSIX to existing GitHub Release on live publish
+        description: Attach packaged VSIX to existing GitHub Release on live
+          publish
         type: boolean
         default: true
       dry-run:
@@ -46,7 +52,8 @@ jobs:
       contents: read
     uses: moyarich/reusable-workflows/.github/workflows/reusable_dispatch-input-summary.yml@main
     with:
-      parameters-json: ${{ github.event_name == 'workflow_dispatch' && toJSON(inputs) || '{}' }}
+      parameters-json: ${{ github.event_name == 'workflow_dispatch' &&
+        toJSON(inputs) || '{}' }}
       heading: "vscode-publish · Run parameters"
 
   publish:
@@ -64,7 +71,8 @@ jobs:
       registry: ${{ inputs.registry }}
       registries-file: ${{ inputs.registries-file }}
       version: ${{ inputs.version }}
-      release-tag-prefix: ${{ inputs.package == '.' && 'v' || format('{0}@', inputs.package) }}
+      release-tag-prefix: ${{ inputs.package == '.' && 'v' || format('{0}@',
+        inputs.package) }}
       release-tag: ${{ inputs.release-tag }}
       attach-release-asset: ${{ inputs.attach-release-asset }}
       dry-run: ${{ inputs.dry-run }}
