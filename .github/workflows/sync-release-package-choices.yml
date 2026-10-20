@@ -7,7 +7,9 @@ on:
         description: Workspace Tools CLI source for package discovery
         type: choice
         required: false
+        default: auto
         options:
+          - auto
           - checkout:current
           - checkout:upstream;branch:main
           - registry:npm:latest
@@ -33,19 +35,7 @@ jobs:
     uses: moyarich/reusable-workflows/.github/workflows/reusable_sync-release-package-choices.yml@main
 
     with:
-      workspace-tools-source: >-
-        ${{
-          (
-            github.event_name == 'workflow_dispatch' &&
-            inputs.workspace-tools-source
-          ) ||
-          (
-            github.repository == 'moyarich/workspace-tools' &&
-            'checkout:current'
-          ) ||
-          'checkout:upstream;branch:main'
-        }}
-
+      workspace-tools-source: ${{ inputs.workspace-tools-source || 'auto' }}
       workflow-files: '[".github/workflows/release-draft.yml",".github/workflows/release.yml",".github/workflows/restore-release.yml",".github/workflows/reset-release.yml",".github/workflows/publish.yml"]'
       packages-directory: packages
       use-workspaces: true
