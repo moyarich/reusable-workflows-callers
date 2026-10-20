@@ -12,18 +12,9 @@ permissions:
 jobs:
   lint-workflows:
     name: Validate workflow syntax
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - name: Actionlint
-        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.7 -color -shellcheck=
-      - name: Summary
-        if: always()
-        env:
-          STATUS: ${{ job.status }}
-        run: echo "## Workflow syntax — $STATUS" >> "$GITHUB_STEP_SUMMARY"
+    permissions:
+      contents: read
+    uses: moyarich/reusable-workflows/.github/workflows/reusable_actionlint.yml@main
 
   checks:
     name: Monorepo checks
