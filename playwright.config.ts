@@ -17,7 +17,15 @@ async function findAvailablePort(): Promise<number> {
   });
 }
 
-const port = await findAvailablePort();
+// The Playwright runner loads this config before forking test workers.
+// Persist the selected port in the environment so workers use the same baseURL.
+const port = process.env.PLAYWRIGHT_PORT
+  ? Number(process.env.PLAYWRIGHT_PORT)
+  : await findAvailablePort();
+if (!Number.isInteger(port) || port < 1 || port > 65535) {
+  throw new Error("PLAYWRIGHT_PORT must be a valid TCP port");
+}
+process.env.PLAYWRIGHT_PORT = String(port);
 const baseURL = `http://127.0.0.1:${port}`;
 
 export default defineConfig({
