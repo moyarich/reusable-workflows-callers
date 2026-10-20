@@ -1,0 +1,27 @@
+name: Self-heal → CI
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      repair:
+        description: Preventive repairs
+        type: choice
+        default: all
+        options: [all, package-lock, prettier]
+permissions:
+  contents: write
+  actions: write
+  packages: read
+concurrency:
+  group: self-heal-ci-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  self-heal-ci:
+    uses: moyarich/reusable-workflows/.github/workflows/reusable_self-heal-ci.yml@main
+    with:
+      ci-workflow: ci.yml
+      target-branch: ${{ github.ref_name }}
+      node-version: "24"
+      repair: ${{ inputs.repair || 'all' }}
+      commit: true
