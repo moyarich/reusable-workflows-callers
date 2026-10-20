@@ -18,5 +18,5 @@ assignees: []
 
 <!-- List outcomes of the fix, not tasks such as writing tests, running CI, or updating documentation. Each checkbox should be demonstrable through the solution's existing CI/test/build workflow using checked-in fixtures or generated artifacts. Verification needed for the fix belongs in the same implementation PR. -->
 
-- [ ] 
-- [ ] 
+- [ ]
+- [ ]
