@@ -8,10 +8,10 @@ permissions:
 
 jobs:
   check-dist:
-    name: Check distribution
+    name: Check example package distribution
     uses: moyarich/reusable-workflows/.github/workflows/reusable_check-dist.yml@main
     with:
-      dist-path: packages/workspace-tools/dist/bin/
-      build-command: npm run build
+      dist-path: packages/example/dist/
+      build-command: npm run build --workspace @template/example
       node-version: "24"
-      artifact-name: dist
+      artifact-name: example-dist
