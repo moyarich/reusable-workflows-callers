@@ -3,8 +3,13 @@
   "compilerOptions": {
     "noEmit": false,
     "declaration": true,
-    "emitDeclarationOnly": false
+    "emitDeclarationOnly": false,
+    "rootDir": "src"
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["tests/**"]
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "tests/**"
+  ]
 }
