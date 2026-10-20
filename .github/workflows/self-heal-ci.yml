@@ -9,6 +9,10 @@ on:
         type: choice
         default: all
         options: [all, package-lock, prettier]
+      commit:
+        description: Commit repaired files
+        type: boolean
+        default: true
 permissions:
   contents: write
   actions: write
@@ -24,4 +28,4 @@ jobs:
       target-branch: ${{ github.ref_name }}
       node-version: "24"
       repair: ${{ inputs.repair || 'all' }}
-      commit: true
+      commit: ${{ github.event_name != 'workflow_dispatch' || inputs.commit }}
