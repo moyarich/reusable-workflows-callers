@@ -22,6 +22,10 @@ on:
         options: [chrome, firefox, all]
         default: all
         required: true
+      chrome-publisher-id:
+        description: Chrome Web Store publisher ID (required for Chrome live publishing)
+        type: string
+        default: ""
       chrome-extension-id:
         description: Chrome Web Store item ID (required for Chrome live publishing)
         type: string
@@ -55,6 +59,7 @@ jobs:
       package-directory: ${{ inputs.package }}
       build-directory: ${{ inputs.build-directory }}
       registry: ${{ inputs.registry }}
+      chrome-publisher-id: ${{ inputs.chrome-publisher-id }}
       chrome-extension-id: ${{ inputs.chrome-extension-id }}
       firefox-addon-id: ${{ inputs.firefox-addon-id }}
       dry-run: ${{ inputs.dry-run }}
