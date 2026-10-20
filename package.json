@@ -4,19 +4,19 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node scripts/workspaces.mjs dev",
+    "dev": "npm run dev --workspace apps/playground",
     "build": "npm run build --workspaces --if-present",
-    "build:packages": "node scripts/workspaces.mjs build:packages",
-    "build:playground": "node scripts/workspaces.mjs build:playground",
+    "build:packages": "npm run build --workspaces --if-present",
+    "build:playground": "npm run build --workspace apps/playground",
     "test": "npm test --workspaces --if-present",
-    "test:watch": "node scripts/workspaces.mjs test:watch",
+    "test:watch": "vitest",
     "typecheck": "npm run typecheck --workspaces --if-present && tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "npm run lint -- --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "checks": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
-    "pack:check": "node scripts/workspaces.mjs pack:check"
+    "pack:check": "npm pack --workspaces --dry-run"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
