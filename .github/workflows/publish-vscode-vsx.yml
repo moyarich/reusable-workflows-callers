@@ -8,13 +8,10 @@ on:
   workflow_dispatch:
     inputs:
       package:
-        description: Select a publishable workspace package
+        description: VS Code extension directory (one extension per run)
         required: true
-        type: choice
-        default: all
-        options:
-          - all
-          - packages/example
+        type: string
+        default: .
       registry:
         description: Extension registry
         type: choice
