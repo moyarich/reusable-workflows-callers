@@ -14,7 +14,7 @@ permissions:
   actions: write
   packages: read
 concurrency:
-  group: self-heal-ci-${{ github.ref }}
+  group: self-heal-${{ github.repository }}-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   self-heal-ci:
