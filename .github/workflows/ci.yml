@@ -47,7 +47,7 @@ jobs:
       - name: Find changed Playwright specs or configuration
         if: github.event_name == 'pull_request'
         id: filter
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             playwright:
