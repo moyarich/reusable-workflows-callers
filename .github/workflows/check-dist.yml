@@ -73,6 +73,8 @@ jobs:
         env:
           DISCOVERED: ${{ needs.discover-packages.outputs.packages }}
           PACKAGES: ${{ inputs.packages }}
+          DIST_PATH_OVERRIDE: ${{ inputs.dist-path }}
+          BUILD_COMMAND_OVERRIDE: ${{ inputs.build-command }}
         run: |
           node <<'NODE'
           const fs = require('node:fs');
@@ -84,6 +86,10 @@ jobs:
             : eligible.filter(p => p.directory === selected || p.name === selected);
           if (packages.length === 0) {
             console.error('::error title=No matching package::Select a discovered package directory/name or all.');
+            process.exit(1);
+          }
+          if (packages.length > 1 && (process.env.DIST_PATH_OVERRIDE || process.env.BUILD_COMMAND_OVERRIDE)) {
+            console.error('::error title=Ambiguous overrides::When selecting multiple packages, omit dist-path and build-command overrides or select one package.');
             process.exit(1);
           }
           const matrix = JSON.stringify({include: packages});
