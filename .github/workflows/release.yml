@@ -55,7 +55,7 @@ on:
         required: true
         default: true
       draft:
-        description: >-
+        description: |
           Prepare draft GitHub Releases
           (disable only to explicitly finalize)
         type: boolean
