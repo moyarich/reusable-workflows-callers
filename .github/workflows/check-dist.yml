@@ -2,16 +2,32 @@ name: Check distribution
 
 on:
   workflow_dispatch:
+    inputs:
+      dist-path:
+        description: Path to generated package distribution
+        type: string
+        required: true
+        default: packages/example/dist/
+      build-command:
+        description: Command to build the selected distribution
+        type: string
+        required: true
+        default: npm run build --workspace @template/example
+      artifact-name:
+        description: Artifact name for the distribution
+        type: string
+        required: true
+        default: example-dist
 
 permissions:
   contents: read
 
 jobs:
   check-dist:
-    name: Check example package distribution
+    name: Check package distribution
     uses: moyarich/reusable-workflows/.github/workflows/reusable_check-dist.yml@main
     with:
-      dist-path: packages/example/dist/
-      build-command: npm run build --workspace @template/example
+      dist-path: ${{ inputs.dist-path }}
+      build-command: ${{ inputs.build-command }}
       node-version: "24"
-      artifact-name: example-dist
+      artifact-name: ${{ inputs.artifact-name }}
