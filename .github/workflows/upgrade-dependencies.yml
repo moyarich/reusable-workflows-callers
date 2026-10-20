@@ -29,7 +29,6 @@ jobs:
       - name: Upgrade registry dependencies in root and all workspaces
         env:
           NODE_AUTH_TOKEN: ${{ github.token }}
-        env:
           REJECT: ${{ inputs.reject }}
         shell: bash
         run: |
