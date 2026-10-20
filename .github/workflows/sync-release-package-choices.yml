@@ -6,7 +6,7 @@ on:
       workspace-tools-source:
         description: Workspace Tools CLI source for package discovery
         type: choice
-        required: false
+        required: true
         default: auto
         options:
           - auto
