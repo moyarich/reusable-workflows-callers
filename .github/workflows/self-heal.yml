@@ -1,7 +1,6 @@
 name: Self-heal
 
 on:
-  push:
   workflow_dispatch:
 
 permissions:
