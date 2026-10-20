@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -44,3 +45,68 @@ jobs:
         env:
           STATUS: ${{ job.status }}
         run: echo "## Monorepo checks — $STATUS" >> "$GITHUB_STEP_SUMMARY"
+
+  playwright-changes:
+    name: Detect Playwright changes
+    runs-on: ubuntu-latest
+    outputs:
+      run-playwright: ${{ steps.decision.outputs.run-playwright }}
+    steps:
+      - name: Find changed Playwright specs or configuration
+        if: github.event_name == 'pull_request'
+        id: filter
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            playwright:
+              - '**/*.spec.*'
+              - '**/*.specs.*'
+              - '**/playwright.config.*'
+              - '.github/workflows/ci.yml'
+      - name: Decide whether browser tests are required
+        id: decision
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PLAYWRIGHT_CHANGED: ${{ steps.filter.outputs.playwright }}
+        run: |
+          if [[ "$EVENT_NAME" != "pull_request" || "$PLAYWRIGHT_CHANGED" == "true" ]]; then
+            echo "run-playwright=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run-playwright=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  playwright:
+    name: Playwright browser tests
+    needs: playwright-changes
+    if: needs.playwright-changes.outputs.run-playwright == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci --include=optional
+      - name: Check for installed Playwright
+        id: playwright-package
+        shell: bash
+        run: |
+          if node -e "require.resolve('@playwright/test')"; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Playwright is not installed in this repository; skipping browser tests."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+      - run: npx playwright install --with-deps chromium
+        if: steps.playwright-package.outputs.available == 'true'
+      - run: npx playwright test
+        if: steps.playwright-package.outputs.available == 'true'
+      - name: Upload Playwright traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-traces
+          path: test-results/
+          if-no-files-found: ignore
