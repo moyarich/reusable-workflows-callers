@@ -15,6 +15,7 @@ on:
         options:
           - checkout:current
           - checkout:upstream;branch:main
+          - registry:npm:latest
       package:
         description: Select a publishable workspace package
         required: true
