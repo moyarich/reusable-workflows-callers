@@ -6,10 +6,10 @@ Run **Publish browser extension** manually. Defaults are `dry-run: true`, `regis
 
 ## Store setup
 
-| Store | Secret in caller repository | Other input |
-| --- | --- | --- |
-| Chrome Web Store | `_CHROME_CLIENT_ID`, `_CHROME_CLIENT_SECRET`, `_CHROME_REFRESH_TOKEN` | `chrome-publisher-id`, `chrome-extension-id` |
-| Firefox Add-ons | `_FIREFOX_API_KEY`, `_FIREFOX_API_SECRET` | Optional `firefox-addon-id` to compare to the built manifest |
+| Store            | Secret in caller repository                                           | Other input                                                  |
+| ---------------- | --------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Chrome Web Store | `_CHROME_CLIENT_ID`, `_CHROME_CLIENT_SECRET`, `_CHROME_REFRESH_TOKEN` | `chrome-publisher-id`, `chrome-extension-id`                 |
+| Firefox Add-ons  | `_FIREFOX_API_KEY`, `_FIREFOX_API_SECRET`                             | Optional `firefox-addon-id` to compare to the built manifest |
 
 Configure an environment named `release` with required reviewers for live publishing. Chrome uses Chrome Web Store API **V2**; the item must already exist and have its listing configured. Firefox uses Mozilla's `web-ext sign --channel listed` API and requires `browser_specific_settings.gecko.id` in the built manifest for updates. Both stores may review submissions before making them publicly available.
 
