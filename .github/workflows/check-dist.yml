@@ -70,6 +70,7 @@ jobs:
     outputs:
       matrix: ${{ steps.select.outputs.matrix }}
       has-packages: ${{ steps.select.outputs.has-packages }}
+      single-package: ${{ steps.select.outputs.single-package }}
     steps:
       - name: Filter discovered packages
         id: select
@@ -120,7 +121,7 @@ jobs:
       artifact-name: ${{ format('dist-{0}', strategy.job-index) }}
       node-version: "24"
       repair: true
-      commit: ${{ !inputs.dry-run }}
+      commit: ${{ !inputs.dry-run && needs.select-packages.outputs.single-package == 'true' }}
       target-branch: ${{ github.ref_name }}
       expected-sha: ${{ github.sha }}
       checkout-sha: ${{ github.sha }}
