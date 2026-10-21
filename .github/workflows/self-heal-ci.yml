@@ -9,19 +9,23 @@ on:
         type: choice
         default: all
         options: [all, package-lock, prettier]
+      commit:
+        description: Commit repaired files
+        type: boolean
+        default: true
 permissions:
   contents: write
   actions: write
   packages: read
 concurrency:
-  group: self-heal-ci-${{ github.ref }}
+  group: self-heal-${{ github.repository }}-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   self-heal-ci:
     uses: moyarich/reusable-workflows/.github/workflows/reusable_self-heal.yml@main
     with:
-      ci-workflow: ci.yml
+      required-workflow: ci.yml
       target-branch: ${{ github.ref_name }}
       node-version: "24"
       repair: ${{ inputs.repair || 'all' }}
-      commit: true
+      commit: ${{ github.event_name != 'workflow_dispatch' || inputs.commit }}
