@@ -1,15 +1,15 @@
-name: "Check · Action distribution"
+name: "Check · distribution"
 
 on:
   pull_request:
     paths:
-      - "packages/example/src/**"
-      - "packages/example/dist/**"
-      - "packages/example/tsconfig.build.json"
+      - "src/actions/**"
+      - "actions/dist/**"
+      - "vite.config.ts"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/check-dist.yml"
-      - "packages/example/package.json"
+      - ".github/workflows/reusable_self-heal-dist.yml"
   workflow_dispatch:
     inputs:
       dry-run:
@@ -30,15 +30,15 @@ jobs:
     name: Build, compare, validate and heal distribution
     permissions:
       contents: write
-    uses: moyarich/reusable-workflows/.github/workflows/reusable_self-heal-dist.yml@main
+    uses: ./.github/workflows/reusable_self-heal-dist.yml
     with:
-      dist-path: packages/example/dist/
-      build-command: npm run build --workspace packages/example
-      install-command: npm ci --include=optional
+      dist-path: actions/dist/
+      build-command: npm run build:cli
+      install-command: npm install --no-package-lock --no-audit --no-fund
       validation-command: npx --no-install vitest run
       node-version: "24"
       node-caching: ""
-      artifact-name: example-dist-preview
+      artifact-name: action-dist-preview
       repair: true
       commit: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'workflow_dispatch' && !inputs.dry-run) }}
       checkout-sha: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
