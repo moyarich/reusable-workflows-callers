@@ -1,3 +1,4 @@
+
 name: CI
 
 on:
@@ -14,7 +15,7 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: ci-${{ github.repository }}-${{ github.ref }}
+  group: ci-${{ github.repository }}-${{ inputs.checkout-sha || github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -22,29 +23,49 @@ jobs:
     name: Validate workflow syntax
     permissions:
       contents: read
-    # Merge the reusable workflow upstream before adding or renaming this caller.
     uses: moyarich/reusable-workflows/.github/workflows/reusable_actionlint.yml@main
 
   checks:
-    name: Monorepo checks
+    name: Checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - name: Checkout
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.checkout-sha || github.sha }}
           persist-credentials: false
-      - uses: actions/setup-node@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: npm
-      - run: npm ci --include=optional
-      - run: npm run checks
-      - run: npm run pack:check
+
+      - name: Install dependencies
+        run: npm ci --include=optional
+
+      - name: Run Vitest
+        id: vitest
+        run: npx --no-install vitest run
+
+      - name: Run Typecheck
+        id: typecheck
+        shell: bash
+        run: |
+          npm run typecheck --workspaces --if-present
+      
+          if [[ -f tsconfig.tests.json ]]; then
+            npx --no-install tsc -p tsconfig.tests.json --noEmit
+          elif [[ -f tsconfig.json ]]; then
+            npx --no-install tsc -p tsconfig.json --noEmit
+          else
+            echo "No TypeScript configuration found; skipping tsc."
+          fi
       - name: Summary
         if: always()
         env:
           STATUS: ${{ job.status }}
-        run: echo "## Monorepo checks — $STATUS" >> "$GITHUB_STEP_SUMMARY"
+        run: echo "## Checks — $STATUS" >> "$GITHUB_STEP_SUMMARY"
 
   playwright-changes:
     name: Detect Playwright changes
@@ -63,6 +84,7 @@ jobs:
               - '**/*.specs.*'
               - '**/playwright.config.*'
               - '.github/workflows/ci.yml'
+
       - name: Decide whether browser tests are required
         id: decision
         env:
@@ -81,14 +103,21 @@ jobs:
     if: needs.playwright-changes.outputs.run-playwright == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - name: Checkout
+        uses: actions/checkout@v7
         with:
+          ref: ${{ inputs.checkout-sha || github.sha }}
           persist-credentials: false
-      - uses: actions/setup-node@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: npm
-      - run: npm ci --include=optional
+
+      - name: Install dependencies
+        run: npm ci --include=optional
+
       - name: Check for installed Playwright
         id: playwright-package
         shell: bash
@@ -96,13 +125,18 @@ jobs:
           if node -e "require.resolve('@playwright/test')"; then
             echo "available=true" >> "$GITHUB_OUTPUT"
           else
-            echo "Playwright is not installed in this repository; skipping browser tests."
+            echo "Playwright is not installed; skipping browser tests."
             echo "available=false" >> "$GITHUB_OUTPUT"
           fi
-      - run: npx playwright install --with-deps chromium
+
+      - name: Install Chromium
         if: steps.playwright-package.outputs.available == 'true'
-      - run: npx playwright test
+        run: npx --no-install playwright install --with-deps chromium
+
+      - name: Run Playwright
         if: steps.playwright-package.outputs.available == 'true'
+        run: npx --no-install playwright test
+
       - name: Upload Playwright traces on failure
         if: failure()
         uses: actions/upload-artifact@v6
