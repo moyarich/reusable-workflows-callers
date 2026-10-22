@@ -1,0 +1,43 @@
+name: CI / CLI and workspace quality
+on:
+  workflow_call:
+    inputs:
+      checkout-sha:
+        type: string
+        required: false
+        default: ""
+permissions:
+  contents: read
+jobs:
+  cli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.checkout-sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci --include=optional --no-audit --no-fund
+      - name: Validate package changelogs if action is available
+        if: ${{ hashFiles('actions/validate-package-changelogs/action.yml', 'actions/validate-package-changelogs/action.yaml') != '' }}
+        uses: ./actions/validate-package-changelogs
+      - name: Lint
+        run: npm run lint --if-present
+      - name: Typecheck
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run typecheck --if-present
+          npm run typecheck --workspaces --if-present
+          if [[ -f tsconfig.tests.json ]]; then
+            npx --no-install tsc -p tsconfig.tests.json --noEmit
+          fi
+      - name: Build
+        run: npm run build --if-present
+      - name: Vitest
+        run: npm run test:unit --if-present
+      - name: Package contents
+        run: npm run pack:check --if-present
