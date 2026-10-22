@@ -24,6 +24,8 @@ on:
       - ".prettierignore"
       - "tsconfig*.json"
       - ".github/workflows/**"
+      - ".github/actionlint.yaml"
+      - ".github/check-dist-config.yml"
   workflow_dispatch:
     inputs:
       checkout-sha:
