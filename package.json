@@ -8,7 +8,7 @@
     "build": "npm run build --workspaces --if-present",
     "build:packages": "npm run build --workspaces --if-present",
     "build:playground": "npm run build --workspace apps/playground",
-    "test": "npm test --workspaces --if-present",
+    "test": "vitest run tests",
     "test:watch": "npm run test:watch --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present && tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
