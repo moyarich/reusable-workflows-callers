@@ -2,7 +2,7 @@
   "name": "@moyarich/example",
   "version": "0.1.0",
   "publisher": "moyarich",
-  "author": "Moya Richards"
+  "author": "Moya Richards",
   "description": "",
   "license": "MIT",
   "type": "module",
@@ -17,7 +17,7 @@
     }
   },
   "files": [
-    "dist",
+    "dist"
   ],
   "bugs": {
     "url": ""
@@ -28,7 +28,7 @@
   ],
   "scripts": {
     "build": "vite build && tsc -p tsconfig.build.json",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "lucide-react": "^1.47.0"
@@ -44,5 +44,5 @@
     "react-dom": "^19.2.7",
     "typescript": "^5.9.2",
     "vite": "^7.1.5"
-  },
+  }
 }
