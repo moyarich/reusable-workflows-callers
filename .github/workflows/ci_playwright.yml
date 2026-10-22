@@ -6,6 +6,13 @@ on:
         type: string
         required: false
         default: ""
+  workflow_dispatch:
+    inputs:
+      checkout-sha:
+        description: Exact commit SHA to validate (e.g. after self-heal)
+        type: string
+        required: false
+        default: ""
 permissions:
   contents: read
 jobs:

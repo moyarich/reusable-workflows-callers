@@ -41,24 +41,24 @@ concurrency:
 jobs:
   actionlint:
     name: Workflows / actionlint
-    uses: ./.github/workflows/ci_actionlint.yml
+    uses: $/.github/workflows/ci_actionlint.yml
   cli:
     name: Node / build, lint, typecheck, Vitest, pack
-    uses: ./.github/workflows/ci_cli.yml
+    uses: $/.github/workflows/ci_cli.yml
     with:
       checkout-sha: ${{ inputs.checkout-sha || '' }}
   actions:
     name: Actions / regenerate and verify bundles
-    uses: ./.github/workflows/ci_actions.yml
+    uses: $/.github/workflows/ci_actions.yml
     with:
       checkout-sha: ${{ inputs.checkout-sha || '' }}
   storybook:
     name: Storybook / component tests
-    uses: ./.github/workflows/ci_storybook.yml
+    uses: $/.github/workflows/ci_storybook.yml
     with:
       checkout-sha: ${{ inputs.checkout-sha || '' }}
   playwright:
     name: Playwright / browser tests
-    uses: ./.github/workflows/ci_playwright.yml
+    uses: $/.github/workflows/ci_playwright.yml
     with:
       checkout-sha: ${{ inputs.checkout-sha || '' }}
