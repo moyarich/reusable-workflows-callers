@@ -34,7 +34,14 @@ jobs:
       - name: Validate package changelogs
         uses: moyarich/reusable-workflows/actions/validate-package-changelogs@main
       - name: Lint
-        run: npm run lint --if-present
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -f eslint.config.js || -f eslint.config.mjs || -f eslint.config.cjs ]]; then
+            npx --no-install eslint . --max-warnings 0
+          else
+            npx --yes @biomejs/biome@2.2.5 lint packages apps
+          fi
       - name: Typecheck
         shell: bash
         run: |
