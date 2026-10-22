@@ -24,7 +24,7 @@ jobs:
   self-heal-ci:
     uses: moyarich/reusable-workflows/.github/workflows/reusable_self-heal.yml@main
     with:
-      required-workflow: ci.yml
+      required-workflow: ci_cli.yml
       target-branch: ${{ github.ref_name }}
       node-version: "24"
       repair: ${{ inputs.repair || 'all' }}
