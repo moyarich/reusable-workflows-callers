@@ -1,23 +1,48 @@
 {
-  "name": "@template/example",
+  "name": "@moyarich/example",
   "version": "0.1.0",
+  "publisher": "moyarich",
+  "author": "Moya Richards"
+  "description": "",
+  "license": "MIT",
   "type": "module",
-  "description": "Example publishable library package",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     }
   },
   "files": [
     "dist",
-    "README.md"
+  ],
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "",
+  "keywords": [
+    "typescript"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "vite build && tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest"
   },
-  "devDependencies": {}
+  "dependencies": {
+    "lucide-react": "^1.47.0"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.5"
+  },
 }
