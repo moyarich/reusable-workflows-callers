@@ -54,3 +54,11 @@ npm run build:storybook
 ```
 
 The CI caller runs Playwright directly on `main`, manual dispatch and PRs changing spec/config files. Projects can change their Playwright fixtures and `webServer` settings in `playwright.config.ts`; no CI-specific package script is required. Storybook is a development-only workspace tool and is not included in the published example package.
+
+## Workflow consumer inventory
+
+Run the private/manual **Inventory reusable workflow consumers** GitHub Actions workflow (`workflow_dispatch`) to scan the default-branch workflow files of repositories accessible to `_WORKFLOW_TOKEN`. The workflow commits [the generated Markdown table](docs/workflow-consumers.md) and prints it in the Actions job summary. The token must have read access to all target repositories and write access to this repository. Private repositories are excluded by default. The manual `include-private` input opts in to publishing their names in this repository's committed inventory, which may be publicly readable.
+
+## Release version selection
+
+The `prepare-release-pr.yml` dispatch supports `package-json` (the default) to use each selected package's current declared `package.json` version without incrementing it, alongside `patch`, `minor`, and `major`.
