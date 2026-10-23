@@ -1,6 +1,11 @@
 name: Inventory reusable workflow consumers
 on:
   workflow_dispatch:
+    inputs:
+      include-private:
+        description: Include private repository names in the committed document (visible to anyone who can read this repository)
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -23,6 +28,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets._WORKFLOW_TOKEN }}
           REPOSITORY_OWNER: moyarich
+          INCLUDE_PRIVATE: ${{ inputs.include-private }}
         run: |
           if [ -z "$GH_TOKEN" ]; then
             echo "::error::_WORKFLOW_TOKEN must have read access to the owner's repositories, including private repositories."
