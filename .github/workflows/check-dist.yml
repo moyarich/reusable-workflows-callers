@@ -11,6 +11,10 @@ on:
         type: string
         required: true
         default: all
+      config-path:
+        description: Repository-local YAML distribution configuration path
+        type: string
+        default: .github/check-dist-config.yml
       dist-path:
         description: "Distribution path template. Supports {packageDir}, {package}, {packageName}, {workspace}; blank uses repository configuration or {packageDir}/dist."
         type: string
@@ -61,6 +65,7 @@ jobs:
     uses: moyarich/reusable-workflows/.github/workflows/reusable_self-heal-check-dist.yml@main
     with:
       package: ${{ inputs.package }}
+      config-path: ${{ inputs.config-path }}
       dist-path: ${{ inputs.dist-path }}
       build-command: ${{ inputs.build-command }}
       install-command: ${{ inputs.install-command }}
