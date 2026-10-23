@@ -21,4 +21,4 @@ jobs:
     with:
       expected-base: main
       required-workflows: .github/workflows/ci.yml
-      dry-run: true
+      dry-run: false
