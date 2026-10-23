@@ -57,7 +57,7 @@ The CI caller runs Playwright directly on `main`, manual dispatch and PRs changi
 
 ## Workflow consumer inventory
 
-Run the private/manual **Inventory reusable workflow consumers** GitHub Actions workflow (`workflow_dispatch`) to scan the default-branch workflow files of repositories accessible to `_WORKFLOW_TOKEN`. The workflow commits [the generated Markdown table](docs/workflow-consumers.md) and prints it in the Actions job summary. The token must have read access to all target repositories and write access to this repository. Private repository names will appear in the generated documentation, so restrict repository visibility if necessary.
+Run the private/manual **Inventory reusable workflow consumers** GitHub Actions workflow (`workflow_dispatch`) to scan the default-branch workflow files of repositories accessible to `_WORKFLOW_TOKEN`. The workflow commits [the generated Markdown table](docs/workflow-consumers.md) and prints it in the Actions job summary. The token must have read access to all target repositories and write access to this repository. Private repositories are excluded by default. The manual `include-private` input opts in to publishing their names in this repository's committed inventory, which may be publicly readable.
 
 ## Release version selection
 
