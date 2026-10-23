@@ -6,7 +6,7 @@ export default defineConfig({
     lib: {
       entry: resolve(import.meta.dirname, "src/index.ts"),
       formats: ["es", "cjs"],
-      fileName: (format) => format === "cjs" ? "index.cjs" : "index.js",
+      fileName: (format) => (format === "cjs" ? "index.cjs" : "index.js"),
     },
   },
 });
