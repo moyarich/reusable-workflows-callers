@@ -13,16 +13,25 @@ async function api(path) {
     },
   });
   if (response.status === 404) return null;
-  if (!response.ok) throw new Error(path + ": HTTP " + response.status + " " + await response.text());
+  if (!response.ok)
+    throw new Error(
+      path + ": HTTP " + response.status + " " + (await response.text()),
+    );
   return response.json();
 }
 
 async function repositories() {
   const result = [];
   for (let page = 1; ; page++) {
-    const entries = await api("user/repos?affiliation=owner&visibility=all&per_page=100&page=" + page);
+    const entries = await api(
+      "user/repos?affiliation=owner&visibility=all&per_page=100&page=" + page,
+    );
     if (!entries?.length) break;
-    result.push(...entries.filter((repo) => repo.owner.login.toLowerCase() === owner.toLowerCase()));
+    result.push(
+      ...entries.filter(
+        (repo) => repo.owner.login.toLowerCase() === owner.toLowerCase(),
+      ),
+    );
     if (entries.length < 100) break;
   }
   return result.sort((a, b) => a.name.localeCompare(b.name));
@@ -30,30 +39,63 @@ async function repositories() {
 
 const rows = [];
 for (const repo of await repositories()) {
-  const directory = await api("repos/" + repo.full_name + "/contents/.github/workflows?ref=" + encodeURIComponent(repo.default_branch));
+  const directory = await api(
+    "repos/" +
+      repo.full_name +
+      "/contents/.github/workflows?ref=" +
+      encodeURIComponent(repo.default_branch),
+  );
   if (!Array.isArray(directory)) continue;
   const matches = [];
-  for (const file of directory.filter((entry) => entry.type === "file" && /\.ya?ml$/.test(entry.name))) {
-    const blob = await api("repos/" + repo.full_name + "/contents/" + file.path + "?ref=" + encodeURIComponent(repo.default_branch));
+  for (const file of directory.filter(
+    (entry) => entry.type === "file" && /\.ya?ml$/.test(entry.name),
+  )) {
+    const blob = await api(
+      "repos/" +
+        repo.full_name +
+        "/contents/" +
+        file.path +
+        "?ref=" +
+        encodeURIComponent(repo.default_branch),
+    );
     if (!blob?.content) continue;
-    const yaml = Buffer.from(blob.content.replace(/\s/g, ""), "base64").toString("utf8");
-    if (/moyarich\/reusable-workflows\/\.github\/workflows\/|moyarich\/reusable-workflows-callers\/\.github\/workflows\//.test(yaml)) {
+    const yaml = Buffer.from(
+      blob.content.replace(/\s/g, ""),
+      "base64",
+    ).toString("utf8");
+    if (
+      /moyarich\/reusable-workflows\/\.github\/workflows\/|moyarich\/reusable-workflows-callers\/\.github\/workflows\//.test(
+        yaml,
+      )
+    ) {
       matches.push(file.name);
     }
   }
-  if (matches.length) rows.push({
-    name: repo.full_name,
-    url: repo.html_url,
-    visibility: repo.private ? "Private" : "Public",
-    workflows: matches.sort(),
-  });
+  if (matches.length)
+    rows.push({
+      name: repo.full_name,
+      url: repo.html_url,
+      visibility: repo.private ? "Private" : "Public",
+      workflows: matches.sort(),
+    });
 }
 
 const heading = "# Repositories using reusable workflows";
 const table = [
   "| Repository | Visibility | Workflow callers |",
   "| --- | --- | --- |",
-  ...rows.map((repo) => "| [" + repo.name + "](" + repo.url + ") | " + repo.visibility + " | " + repo.workflows.map((file) => "`" + file + "`").join(", ") + " |"),
+  ...rows.map(
+    (repo) =>
+      "| [" +
+      repo.name +
+      "](" +
+      repo.url +
+      ") | " +
+      repo.visibility +
+      " | " +
+      repo.workflows.map((file) => "`" + file + "`").join(", ") +
+      " |",
+  ),
 ];
 if (!rows.length) table.push("| No matching repositories found | — | — |");
 const content = [
@@ -67,5 +109,6 @@ const content = [
 ].join("\n");
 mkdirSync("docs", { recursive: true });
 writeFileSync("docs/workflow-consumers.md", content);
-if (process.env.GITHUB_STEP_SUMMARY) writeFileSync(process.env.GITHUB_STEP_SUMMARY, content, { flag: "a" });
+if (process.env.GITHUB_STEP_SUMMARY)
+  writeFileSync(process.env.GITHUB_STEP_SUMMARY, content, { flag: "a" });
 console.log("Matched " + rows.length + " repositories");
