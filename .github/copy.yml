@@ -1,0 +1,14 @@
+# Central source: moyarich/reusable-workflows-callers
+# Each entry explicitly opts a destination repository into synchronization.
+# Copy only shared CI callers; never copy all .github/workflows files because
+# release, publishing, and repository-specific workflows may differ.
+source-files: ".github/workflows/ci_*.yml"
+destination-directory: ".github/workflows"
+repositories:
+  - name: moyarich/console
+    branch: main
+  - name: moyarich/moyaforge
+    branch: main
+  - name: moyarich/workspace-tools
+    branch: main
+# Add other repositories after checking that their CI caller filenames match.
