@@ -65,7 +65,7 @@ The `prepare-release-pr.yml` dispatch supports `package-json` (the default) to u
 
 ## Copy shared CI callers to other repositories
 
-This repository is the canonical source for shared `.github/workflows/ci_*.yml` caller files. Edit [`.github/copy.yml`](.github/copy.yml) to select destination repositories and their branches. The [copy workflow](.github/workflows/copy.yml) copies these callers into each destination's `.github/workflows/` directory when changes reach `main`.
+This repository is the canonical source for shared CI caller files. Edit [`.github/copy.yml`](.github/copy.yml) to explicitly list the source workflow files to copy, and to select destination repositories and branches. The [copy workflow](.github/workflows/copy.yml) copies these callers into each destination's `.github/workflows/` directory when changes reach `main`.
 
 Use **Actions → Copy shared workflow callers → Run workflow** to preview configured destinations; the manual dispatch defaults to dry-run. Turn off dry-run to perform the copy manually. Configure the existing `_WORKFLOW_TOKEN` secret to authorize cross-repository pushes and GitHub workflow file changes in each destination. `GITHUB_TOKEN` scoped to the source repository cannot push to other repositories.
 
