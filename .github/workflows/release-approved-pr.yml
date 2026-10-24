@@ -1,4 +1,4 @@
-name: Create release from approved preparation PR
+name: Release approved preparation PR
 
 on:
   pull_request:
@@ -13,6 +13,7 @@ jobs:
     if: ${{ github.event.pull_request.merged == true && github.event.pull_request.head.repo.full_name == github.repository && startsWith(github.event.pull_request.head.ref, 'release/prepare-') }}
     permissions:
       contents: write
+      packages: write
       checks: read
       actions: write
       statuses: read
@@ -22,3 +23,5 @@ jobs:
       expected-base: main
       required-workflows: .github/workflows/ci.yml
       dry-run: false
+    secrets:
+      npm-token: ${{ secrets._NPM_TOKEN }}
