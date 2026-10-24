@@ -1,0 +1,86 @@
+name: Copy shared workflow callers
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: Preview generated changes without pushing
+        type: boolean
+        default: true
+  push:
+    branches: [main]
+    paths:
+      - .github/copy.yml
+      - .github/workflows/ci.yml
+      - .github/workflows/ci_*.yml
+      - .github/workflows/copy.yml
+      - scripts/copy-workflows.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: copy-shared-workflow-callers
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.config.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Install YAML parser
+        run: python3 -m pip install --quiet 'ruamel.yaml>=0.18,<0.20'
+      - id: config
+        name: Validate destinations and build matrix
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os, re
+          from ruamel.yaml import YAML
+          config = YAML(typ="safe").load(open(".github/copy.yml"))
+          files = config["source-files"]
+          assert isinstance(files, list) and len(files) and len(files) == len(set(files))
+          targets = config["repositories"]
+          assert isinstance(targets, list) and targets
+          names = [t["name"] for t in targets]
+          assert len(names) == len(set(names))
+          for target in targets:
+              assert re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", target["name"])
+              assert re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/-]*", target["branch"])
+              assert ".." not in target["branch"]
+          matrix = {"include": [{"name": t["name"], "branch": t["branch"]} for t in targets]}
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write("matrix=" + json.dumps(matrix, separators=(",", ":")) + "\n")
+          PY
+
+  copy:
+    needs: plan
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Install YAML parser
+        run: python3 -m pip install --quiet 'ruamel.yaml>=0.18,<0.20'
+      - name: Generate repository-specific workflows
+        env:
+          DEST_REPO: ${{ matrix.name }}
+        run: |
+          python3 scripts/copy-workflows.py --repository "$DEST_REPO" --output "$RUNNER_TEMP/generated"
+      - name: Copy generated workflows to destination
+        uses: moyarich/reusable-workflows/actions/copy-files-to-another-repository@feat/copy-files-to-another-repository
+        with:
+          token: ${{ secrets._WORKFLOW_TOKEN }}
+          source-directory: ${{ runner.temp }}/generated
+          destination-repository: ${{ matrix.name }}
+          destination-branch: ${{ matrix.branch }}
+          dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run || false }}
+          commit-message: "chore(ci): sync shared workflow callers from ${{ github.repository }}@${{ github.sha }}"
