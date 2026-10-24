@@ -62,3 +62,11 @@ Run the private/manual **Inventory reusable workflow consumers** GitHub Actions 
 ## Release version selection
 
 The `prepare-release-pr.yml` dispatch supports `package-json` (the default) to use each selected package's current declared `package.json` version without incrementing it, alongside `patch`, `minor`, and `major`.
+
+## Copy shared CI callers to other repositories
+
+This repository is the canonical source for shared `.github/workflows/ci_*.yml` caller files. Edit [`.github/copy.yml`](.github/copy.yml) to select destination repositories and their branches. The [copy workflow](.github/workflows/copy.yml) copies these callers into each destination's `.github/workflows/` directory when changes reach `main`.
+
+Use **Actions → Copy shared workflow callers → Run workflow** to preview configured destinations; the manual dispatch defaults to dry-run. Turn off dry-run to perform the copy manually. Configure the existing `_WORKFLOW_TOKEN` secret to authorize cross-repository pushes and GitHub workflow file changes in each destination. `GITHUB_TOKEN` scoped to the source repository cannot push to other repositories.
+
+**Caution:** The third-party copy action writes directly to each destination branch, overwriting matching shared caller files; it does not create destination PRs, remove stale files, or propagate repository-specific overrides. Only enroll consumers whose shared caller files should be kept identical. Review the configuration and destination files before merging changes that trigger synchronization.
