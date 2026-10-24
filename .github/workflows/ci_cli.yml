@@ -2,23 +2,18 @@ name: CI / CLI and workspace quality
 on:
   push:
     branches: [main]
-    paths:
-      - ".github/workflows/**"
+    paths: &cli_paths
+      - ".github/workflows/ci_cli.yml"
       - "src/**"
+      - "packages/**"
+      - "apps/**"
       - "tests/**"
-      - "package.json"
-      - "package-lock.json"
-      - "vite.config.ts"
-      - "tsconfig.json"
+      - "**/*.{ts,tsx,js,jsx,mjs,cjs}"
+      - "**/{vite,vitest,eslint,tsconfig}*.{js,mjs,cjs,ts,json}"
+      - "package*.json"
+      - ".npmrc"
   pull_request:
-    paths:
-      - ".github/workflows/**"
-      - "src/**"
-      - "tests/**"
-      - "package.json"
-      - "package-lock.json"
-      - "vite.config.ts"
-      - "tsconfig.json"
+    paths: *cli_paths
   workflow_call:
     inputs:
       checkout-sha:
