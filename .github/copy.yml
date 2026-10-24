@@ -2,7 +2,14 @@
 # Each entry explicitly opts a destination repository into synchronization.
 # Copy only shared CI callers; never copy all .github/workflows files because
 # release, publishing, and repository-specific workflows may differ.
-source-files: ".github/workflows/ci_*.yml"
+source-files:
+  - .github/workflows/ci.yml
+  - .github/workflows/ci_actionlint.yml
+  - .github/workflows/ci_cli.yml
+  - .github/workflows/ci_package-lock.yml
+  - .github/workflows/ci_playwright.yml
+  - .github/workflows/ci_prettier.yml
+  - .github/workflows/ci_storybook.yml
 destination-directory: ".github/workflows"
 repositories:
   - name: moyarich/console
