@@ -39,9 +39,14 @@ jobs:
           ruby -ryaml -rjson <<'RUBY'
           config = YAML.safe_load(File.read(".github/copy.yml"))
           files = config.fetch("source-files")
+          abort "source-files must be a nonempty list" unless files.is_a?(Array) && !files.empty?
+          abort "Duplicate source files" unless files.uniq.length == files.length
+          files.each do |file|
+            abort "Only explicitly listed shared CI workflow YAML files may be copied" unless file.is_a?(String) && file.match?(/\A\.github\/workflows\/ci_[a-zA-Z0-9_-]+\.yml\z/) || file == ".github/workflows/ci.yml"
+            abort "Missing source file: #{file}" unless File.file?(file)
+          end
           directory = config.fetch("destination-directory")
           targets = config.fetch("repositories")
-          abort "Only shared CI workflow YAML files may be copied" unless files == ".github/workflows/ci_*.yml"
           abort "Destination must be .github/workflows" unless directory == ".github/workflows"
           abort "Repositories must be a nonempty list" unless targets.is_a?(Array) && !targets.empty?
           targets.each do |target|
@@ -51,7 +56,7 @@ jobs:
           abort "Duplicate repositories" unless targets.map { |t| t["name"] }.uniq.size == targets.size
           File.open(ENV.fetch("GITHUB_OUTPUT"), "a") do |out|
             out.puts "matrix=#{JSON.generate({ include: targets.map { |t| { owner: t.fetch("name").split("/").first, repo: t.fetch("name").split("/").last, branch: t.fetch("branch") } } })}"
-            out.puts "source_files=#{files}"
+            out.puts "source_files=#{files.join(" ")}"
             out.puts "destination_directory=#{directory}"
           end
           RUBY
@@ -60,7 +65,8 @@ jobs:
           MATRIX: ${{ steps.config.outputs.matrix }}
         run: |
           echo "## Shared caller copy plan" >> "$GITHUB_STEP_SUMMARY"
-          echo "Files: \`.github/workflows/ci_*.yml\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Explicit source files:" >> "$GITHUB_STEP_SUMMARY"
+          ruby -ryaml -e 'YAML.safe_load(File.read(".github/copy.yml")).fetch("source-files").each { |file| puts "- \\`#{file}\\`" }' >> "$GITHUB_STEP_SUMMARY"
           echo "$MATRIX" | jq -r '.include[] | "- " + .owner + "/" + .repo + " (" + .branch + ")"' >> "$GITHUB_STEP_SUMMARY"
 
   copy:
