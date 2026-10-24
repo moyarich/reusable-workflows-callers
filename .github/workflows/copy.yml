@@ -4,15 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       dry-run:
-        description: Preview destinations without pushing changes
+        description: Preview generated changes without pushing
         type: boolean
         default: true
   push:
     branches: [main]
     paths:
       - .github/copy.yml
+      - .github/workflows/ci.yml
       - .github/workflows/ci_*.yml
       - .github/workflows/copy.yml
+      - scripts/copy-workflows.py
 
 permissions:
   contents: read
@@ -26,52 +28,37 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.config.outputs.matrix }}
-      source-files: ${{ steps.config.outputs.source_files }}
-      destination-directory: ${{ steps.config.outputs.destination_directory }}
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Install YAML parser
+        run: python3 -m pip install --quiet 'ruamel.yaml>=0.18,<0.20'
       - id: config
-        name: Validate copy configuration
+        name: Validate destinations and build matrix
         shell: bash
         run: |
-          ruby -ryaml -rjson <<'RUBY'
-          config = YAML.safe_load(File.read(".github/copy.yml"))
-          files = config.fetch("source-files")
-          abort "source-files must be a nonempty list" unless files.is_a?(Array) && !files.empty?
-          abort "Duplicate source files" unless files.uniq.length == files.length
-          files.each do |file|
-            abort "Only explicitly listed shared CI workflow YAML files may be copied" unless file.is_a?(String) && file.match?(/\A\.github\/workflows\/ci_[a-zA-Z0-9_-]+\.yml\z/) || file == ".github/workflows/ci.yml"
-            abort "Missing source file: #{file}" unless File.file?(file)
-          end
-          directory = config.fetch("destination-directory")
-          targets = config.fetch("repositories")
-          abort "Destination must be .github/workflows" unless directory == ".github/workflows"
-          abort "Repositories must be a nonempty list" unless targets.is_a?(Array) && !targets.empty?
-          targets.each do |target|
-            abort "Invalid repository" unless target.fetch("name").match?(/\A[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+\z/)
-            abort "Invalid branch" unless target.fetch("branch").match?(/\A[a-zA-Z0-9][a-zA-Z0-9._\/-]*\z/) && !target["branch"].include?("..")
-          end
-          abort "Duplicate repositories" unless targets.map { |t| t["name"] }.uniq.size == targets.size
-          File.open(ENV.fetch("GITHUB_OUTPUT"), "a") do |out|
-            out.puts "matrix=#{JSON.generate({ include: targets.map { |t| { owner: t.fetch("name").split("/").first, repo: t.fetch("name").split("/").last, branch: t.fetch("branch") } } })}"
-            out.puts "source_files=#{files.join(" ")}"
-            out.puts "destination_directory=#{directory}"
-          end
-          RUBY
-      - name: Show copy plan
-        env:
-          MATRIX: ${{ steps.config.outputs.matrix }}
-        run: |
-          echo "## Shared caller copy plan" >> "$GITHUB_STEP_SUMMARY"
-          echo "Explicit source files:" >> "$GITHUB_STEP_SUMMARY"
-          ruby -ryaml -e 'YAML.safe_load(File.read(".github/copy.yml")).fetch("source-files").each { |file| puts "- \\`#{file}\\`" }' >> "$GITHUB_STEP_SUMMARY"
-          echo "$MATRIX" | jq -r '.include[] | "- " + .owner + "/" + .repo + " (" + .branch + ")"' >> "$GITHUB_STEP_SUMMARY"
+          python3 - <<'PY'
+          import json, os, re
+          from ruamel.yaml import YAML
+          config = YAML(typ="safe").load(open(".github/copy.yml"))
+          files = config["source-files"]
+          assert isinstance(files, list) and len(files) and len(files) == len(set(files))
+          targets = config["repositories"]
+          assert isinstance(targets, list) and targets
+          names = [t["name"] for t in targets]
+          assert len(names) == len(set(names))
+          for target in targets:
+              assert re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", target["name"])
+              assert re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/-]*", target["branch"])
+              assert ".." not in target["branch"]
+          matrix = {"include": [{"name": t["name"], "branch": t["branch"]} for t in targets]}
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write("matrix=" + json.dumps(matrix, separators=(",", ":")) + "\n")
+          PY
 
   copy:
     needs: plan
-    if: github.event_name == 'push' || inputs.dry-run == false
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -81,24 +68,43 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Require cross-repository token
+      - name: Install YAML parser
+        run: python3 -m pip install --quiet 'ruamel.yaml>=0.18,<0.20'
+      - name: Generate repository-specific workflows
         env:
-          TOKEN: ${{ secrets._WORKFLOW_TOKEN }}
+          DEST_REPO: ${{ matrix.name }}
         run: |
-          if [ -z "$TOKEN" ]; then
-            echo "::error::_WORKFLOW_TOKEN is required. It needs Contents write and Workflows write permission on destination repositories."
+          python3 scripts/copy-workflows.py --repository "$DEST_REPO" --output "$RUNNER_TEMP/generated"
+      - name: Compare generated workflows against destination
+        env:
+          GH_TOKEN: ${{ secrets._WORKFLOW_TOKEN }}
+          DEST_REPO: ${{ matrix.name }}
+          DEST_BRANCH: ${{ matrix.branch }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run || false }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::_WORKFLOW_TOKEN is required to access the destination repositories."
             exit 1
           fi
-      - name: Copy shared CI callers
-        uses: nkoppel/push-files-to-another-repository@v1.1.4
-        env:
-          API_TOKEN_GITHUB: ${{ secrets._WORKFLOW_TOKEN }}
-        with:
-          source-files: ${{ needs.plan.outputs.source-files }}
-          destination-username: ${{ matrix.owner }}
-          destination-repository: ${{ matrix.repo }}
-          destination-branch: ${{ matrix.branch }}
-          destination-directory: ${{ needs.plan.outputs.destination-directory }}
-          commit-username: github-actions[bot]
-          commit-email: 41898282+github-actions[bot]@users.noreply.github.com
-          commit-message: "chore(ci): sync shared callers from ORIGIN_COMMIT"
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" \
+            clone --depth 1 --branch "$DEST_BRANCH" "https://github.com/$DEST_REPO.git" "$RUNNER_TEMP/destination"
+          cd "$RUNNER_TEMP/destination"
+          cp -R "$RUNNER_TEMP/generated/.github/." .github/
+          git add .github/workflows/
+          if git diff --cached --quiet; then
+            echo "No workflow changes for $DEST_REPO" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "## $DEST_REPO" >> "$GITHUB_STEP_SUMMARY"
+          git diff --cached --stat >> "$GITHUB_STEP_SUMMARY"
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "Dry run: no commit pushed." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(ci): sync shared workflow callers from $GITHUB_REPOSITORY@$GITHUB_SHA"
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" \
+            push origin "HEAD:$DEST_BRANCH"
