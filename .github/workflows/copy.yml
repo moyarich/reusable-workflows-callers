@@ -75,37 +75,12 @@ jobs:
           DEST_REPO: ${{ matrix.name }}
         run: |
           python3 scripts/copy-workflows.py --repository "$DEST_REPO" --output "$RUNNER_TEMP/generated"
-      - name: Compare generated workflows against destination
-        env:
-          GH_TOKEN: ${{ secrets._WORKFLOW_TOKEN }}
-          DEST_REPO: ${{ matrix.name }}
-          DEST_BRANCH: ${{ matrix.branch }}
-          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run || false }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ -z "$GH_TOKEN" ]; then
-            echo "::error::_WORKFLOW_TOKEN is required to access the destination repositories."
-            exit 1
-          fi
-          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" \
-            clone --depth 1 --branch "$DEST_BRANCH" "https://github.com/$DEST_REPO.git" "$RUNNER_TEMP/destination"
-          cd "$RUNNER_TEMP/destination"
-          mkdir -p .github
-          cp -R "$RUNNER_TEMP/generated/.github/." .github/
-          git add .github/workflows/
-          if git diff --cached --quiet; then
-            echo "No workflow changes for $DEST_REPO" >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-          echo "## $DEST_REPO" >> "$GITHUB_STEP_SUMMARY"
-          git diff --cached --stat >> "$GITHUB_STEP_SUMMARY"
-          if [ "$DRY_RUN" = "true" ]; then
-            echo "Dry run: no commit pushed." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore(ci): sync shared workflow callers from $GITHUB_REPOSITORY@$GITHUB_SHA"
-          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" \
-            push origin "HEAD:$DEST_BRANCH"
+      - name: Copy generated workflows to destination
+        uses: moyarich/reusable-workflows/actions/copy-files-to-another-repository@feat/copy-files-to-another-repository
+        with:
+          token: ${{ secrets._WORKFLOW_TOKEN }}
+          source-directory: ${{ runner.temp }}/generated
+          destination-repository: ${{ matrix.name }}
+          destination-branch: ${{ matrix.branch }}
+          dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run || false }}
+          commit-message: "chore(ci): sync shared workflow callers from ${{ github.repository }}@${{ github.sha }}"
