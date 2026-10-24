@@ -1,0 +1,98 @@
+name: Copy shared workflow callers
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: Preview destinations without pushing changes
+        type: boolean
+        default: true
+  push:
+    branches: [main]
+    paths:
+      - .github/copy.yml
+      - .github/workflows/ci_*.yml
+      - .github/workflows/copy.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: copy-shared-workflow-callers
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.config.outputs.matrix }}
+      source-files: ${{ steps.config.outputs.source_files }}
+      destination-directory: ${{ steps.config.outputs.destination_directory }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - id: config
+        name: Validate copy configuration
+        shell: bash
+        run: |
+          ruby -ryaml -rjson <<'RUBY'
+          config = YAML.safe_load(File.read(".github/copy.yml"))
+          files = config.fetch("source-files")
+          directory = config.fetch("destination-directory")
+          targets = config.fetch("repositories")
+          abort "Only shared CI workflow YAML files may be copied" unless files == ".github/workflows/ci_*.yml"
+          abort "Destination must be .github/workflows" unless directory == ".github/workflows"
+          abort "Repositories must be a nonempty list" unless targets.is_a?(Array) && !targets.empty?
+          targets.each do |target|
+            abort "Invalid repository" unless target.fetch("name").match?(/\A[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+\z/)
+            abort "Invalid branch" unless target.fetch("branch").match?(/\A[a-zA-Z0-9][a-zA-Z0-9._\/-]*\z/) && !target["branch"].include?("..")
+          end
+          abort "Duplicate repositories" unless targets.map { |t| t["name"] }.uniq.size == targets.size
+          File.open(ENV.fetch("GITHUB_OUTPUT"), "a") do |out|
+            out.puts "matrix=#{JSON.generate({ include: targets.map { |t| { owner: t.fetch("name").split("/").first, repo: t.fetch("name").split("/").last, branch: t.fetch("branch") } } })}"
+            out.puts "source_files=#{files}"
+            out.puts "destination_directory=#{directory}"
+          end
+          RUBY
+      - name: Show copy plan
+        env:
+          MATRIX: ${{ steps.config.outputs.matrix }}
+        run: |
+          echo "## Shared caller copy plan" >> "$GITHUB_STEP_SUMMARY"
+          echo "Files: \`.github/workflows/ci_*.yml\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "$MATRIX" | jq -r '.include[] | "- " + .owner + "/" + .repo + " (" + .branch + ")"' >> "$GITHUB_STEP_SUMMARY"
+
+  copy:
+    needs: plan
+    if: github.event_name == 'push' || inputs.dry-run == false
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Require cross-repository token
+        env:
+          TOKEN: ${{ secrets._WORKFLOW_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::_WORKFLOW_TOKEN is required. It needs Contents write and Workflows write permission on destination repositories."
+            exit 1
+          fi
+      - name: Copy shared CI callers
+        uses: nkoppel/push-files-to-another-repository@v1.1.4
+        env:
+          API_TOKEN_GITHUB: ${{ secrets._WORKFLOW_TOKEN }}
+        with:
+          source-files: ${{ needs.plan.outputs.source-files }}
+          destination-username: ${{ matrix.owner }}
+          destination-repository: ${{ matrix.repo }}
+          destination-branch: ${{ matrix.branch }}
+          destination-directory: ${{ needs.plan.outputs.destination-directory }}
+          commit-username: github-actions[bot]
+          commit-email: 41898282+github-actions[bot]@users.noreply.github.com
+          commit-message: "chore(ci): sync shared callers from ORIGIN_COMMIT"
