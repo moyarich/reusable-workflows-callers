@@ -91,6 +91,7 @@ jobs:
           git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" \
             clone --depth 1 --branch "$DEST_BRANCH" "https://github.com/$DEST_REPO.git" "$RUNNER_TEMP/destination"
           cd "$RUNNER_TEMP/destination"
+          mkdir -p .github
           cp -R "$RUNNER_TEMP/generated/.github/." .github/
           git add .github/workflows/
           if git diff --cached --quiet; then
