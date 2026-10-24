@@ -19,3 +19,15 @@ repositories:
   - name: moyarich/workspace-tools
     branch: main
 # Add other repositories after checking that their CI caller filenames match.
+
+# Optional per-repository customization (canonical source is always used):
+#   include:
+#     - .github/workflows/ci_playwright.yml
+#   exclude:
+#     - .github/workflows/ci_storybook.yml
+#   overrides:
+#     .github/workflows/ci_playwright.yml:
+#       jobs:
+#         playwright:
+#           with:
+#             checkout-sha: ''
