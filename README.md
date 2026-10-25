@@ -25,7 +25,7 @@ Root build and test scripts delegate to npm workspaces using `--workspaces --if-
 
 ## Workflows and release safety
 
-The GitHub Actions callers were copied from `moyarich/workspace-tools`. Review all hardcoded package selectors, release triggers, publishing secrets, branch names, and build paths before enabling them in a new repository. In particular, automatic release/publish workflows should remain dry-run or disabled until intentionally configured.
+This GitHub template is the canonical source for shared **thin callers** to workflows maintained in [`moyarich/reusable-workflows`](https://github.com/moyarich/reusable-workflows). A new repository created from the template receives workflow examples, not the central list of synchronization destinations. Review package selectors, release triggers, publishing secrets, branch names, and build paths before enabling workflows. In particular, automatic release/publish workflows should remain dry-run or disabled until intentionally configured.
 
 The Workspace Tools CLI source in migrated callers is `checkout:upstream;branch:main`, not `checkout:current`, because this repository does not contain the Workspace Tools package. For reproducible releases, pin a published CLI version or immutable commit.
 
@@ -63,10 +63,20 @@ Run the private/manual **Inventory reusable workflow consumers** GitHub Actions 
 
 The `prepare-release-pr.yml` dispatch supports `package-json` (the default) to use each selected package's current declared `package.json` version without incrementing it, alongside `patch`, `minor`, and `major`.
 
-## Copy shared CI callers to other repositories
+## Centralized workflow synchronization
 
-[`.github/copy.yml`](.github/copy.yml) explicitly lists canonical workflow files and destination repositories. Each destination can specify `include`, `exclude`, and `overrides` keyed by source file path. The generator always reads the **source** workflow, applies destination overrides using `ruamel.yaml`, and copies the generated workflow into the target repository; it does not merge with the target's existing YAML.
+This repository is a **GitHub template and source repository**, not the controller for copying workflows. The canonical workflow caller YAML files live in `.github/workflows/`. The cross-repository destination inventory and synchronization engine are maintained separately in [`moyarich/reusable-workflows`](https://github.com/moyarich/reusable-workflows).
 
-The [copy workflow](.github/workflows/copy.yml) generates destination-specific YAML and uses the first-party `reusable-workflows/actions/copy-files-to-another-repository` composite action to transfer it. It runs automatically when canonical files or synchronization logic change on `main`. Manual dispatch defaults to a dry run that clones the destination and prints the diff summary without pushing. The existing `_WORKFLOW_TOKEN` secret must be able to read and write destination repositories and modify workflow files.
+- [Central copy configuration](https://github.com/moyarich/reusable-workflows/blob/main/.github/copy-files-config.yml) specifies `source.repository: moyarich/reusable-workflows-callers`, filename patterns, destinations, and per-repository overrides.
+- [Central `copy.yml` caller](https://github.com/moyarich/reusable-workflows/blob/main/.github/workflows/copy.yml) dispatches [`reusable_copy-files-to-another-repository.yml`](https://github.com/moyarich/reusable-workflows/blob/main/.github/workflows/reusable_copy-files-to-another-repository.yml).
+- [Copier implementation and tests](https://github.com/moyarich/reusable-workflows/tree/main/packages/copy-files-to-another-repository) live upstream, not in this template.
 
-Currently, synchronization pushes directly to the destination branch, not a PR. An unchanged generated file results in no new commit. Files removed from the source selection are **not** deleted at the destination. Override keys must already exist in the source workflow; only `jobs`, `env`, `defaults`, `name`, and `run-name` may be overridden. This synchronization does not dynamically dispatch GitHub Actions workflows.
+**Do not add the central destination inventory to this template.** The `.github/copy-files-config.yml` in `reusable-workflows` is repository-local; it is neither copied to destinations nor shared automatically with repositories created from this template. A repository that independently calls the reusable copier must maintain its **own** `.github/copy-files-config.yml` with an explicit `source.repository`.
+
+### Updating callers
+
+Edit the desired canonical `.github/workflows/*.yml` file in this repository and merge the change here. Then run **Copy canonical workflow callers** from the [upstream Actions tab](https://github.com/moyarich/reusable-workflows/actions/workflows/copy.yml). Use `dry-run: true` to preview, optionally specify one `owner/repo` destination, and only set `dry-run: false` to create destination pull requests. The copy operation is manually dispatched; it is **not automatically triggered by merges here**.
+
+Synchronization updates only selected workflows that already exist in the destination, unless its `create-files` allowlist explicitly enables creation. It does not delete removed workflows. Per-repository `exclude` and `overrides` rules are maintained in the upstream configuration. The engine checks publishing implementation compatibility and preserves template package selectors when the release package choice synchronizer is not selected. Review destination PRs and CI before merging; destination `main` is not directly rewritten by the default PR mode.
+
+The upstream workflow expects its `workflow-token` secret, passed by the central caller from `_WORKFLOW_TOKEN`, with permission to read sources and create commits/PRs modifying destination workflow files. See the [copier operations guide](https://github.com/moyarich/reusable-workflows/blob/main/docs/02-guides/copy-files-to-another-repository.md) for configuration details and troubleshooting.
