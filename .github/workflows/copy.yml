@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       dry-run:
-        description: Preview generated changes without pushing
+        description: Preview changes without creating or updating destination PRs
         type: boolean
-        default: true
+        default: false
   push:
     branches: [main]
     paths:
@@ -86,5 +86,6 @@ jobs:
           source-directory: ${{ runner.temp }}/generated
           destination-repository: ${{ matrix.name }}
           destination-branch: ${{ matrix.branch }}
-          dry-run: ${{ github.event_name != 'workflow_dispatch' || inputs.dry-run }}
+          mode: pr
+          dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run || false }}
           commit-message: "chore(ci): sync shared workflow callers from ${{ github.repository }}@${{ github.sha }}"
