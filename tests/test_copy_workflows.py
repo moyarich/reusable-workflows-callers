@@ -140,5 +140,21 @@ class CopierTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "safe workflow filename"):
             module.build(self.config, "moyarich/github_emulator", self.output)
 
+    def test_incompatible_publisher_fails_closed(self):
+        publisher = self.source / "publish.yml"
+        publisher.write_text("uses: reusable_bulk-npm-publish.yml\\n")
+        self.write_config(files=[".github/workflows/publish.yml"])
+        with self.assertRaisesRegex(ValueError, "Incompatible publish.yml"):
+            module.build(self.config, "moyarich/github_emulator", self.output,
+                         ["publish.yml"], "uses: reusable_npm-publish.yml")
+
+    def test_matching_publisher_allowed(self):
+        publisher = self.source / "publish.yml"
+        publisher.write_text("uses: reusable_bulk-npm-publish.yml\\n")
+        self.write_config(files=[".github/workflows/publish.yml"])
+        result = module.build(self.config, "moyarich/github_emulator", self.output,
+                              ["publish.yml"], "uses: reusable_bulk-npm-publish.yml")
+        self.assertEqual(result, [".github/workflows/publish.yml"])
+
 if __name__ == "__main__":
     unittest.main()
