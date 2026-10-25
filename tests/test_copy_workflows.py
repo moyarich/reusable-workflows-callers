@@ -92,5 +92,45 @@ class CopierTests(unittest.TestCase):
                          (self.source / "ci_alpha.yml").read_bytes())
 
 
+    def test_globs_and_destination_existing_files(self):
+        self.write_config()
+        data = yaml.load(self.config)
+        data.pop("source-files")
+        data["source"] = {"directory": ".github/workflows", "include": ["ci_*.yml", "sync-*.yml"], "exclude": []}
+        with self.config.open("w") as out:
+            yaml.dump(data, out)
+        result = module.build(self.config, "moyarich/github_emulator", self.output, ["ci_alpha.yml"])
+        self.assertEqual(result, [".github/workflows/ci_alpha.yml"])
+
+    def test_denylists_override_allowlists(self):
+        self.write_config()
+        data = yaml.load(self.config)
+        data.pop("source-files")
+        data["source"] = {"directory": ".github/workflows", "include": ["*.yml"], "exclude": ["sync-*.yml"]}
+        data["repositories"][0]["exclude"] = ["ci_*.yml"]
+        with self.config.open("w") as out:
+            yaml.dump(data, out)
+        result = module.build(self.config, "moyarich/github_emulator", self.output, ["ci_alpha.yml", "sync-release-package-choices.yml"])
+        self.assertEqual(result, [])
+
+    def test_explicit_creation_opt_in(self):
+        self.write_config()
+        data = yaml.load(self.config)
+        data["repositories"][0]["create-files"] = ["sync-*.yml"]
+        with self.config.open("w") as out:
+            yaml.dump(data, out)
+        result = module.build(self.config, "moyarich/github_emulator", self.output, [])
+        self.assertEqual(result, [".github/workflows/sync-release-package-choices.yml"])
+
+    def test_unsafe_glob_rejected(self):
+        self.write_config()
+        data = yaml.load(self.config)
+        data.pop("source-files")
+        data["source"] = {"directory": ".github/workflows", "include": ["../*.yml"]}
+        with self.config.open("w") as out:
+            yaml.dump(data, out)
+        with self.assertRaisesRegex(ValueError, "safe workflow filename"):
+            module.build(self.config, "moyarich/github_emulator", self.output)
+
 if __name__ == "__main__":
     unittest.main()
