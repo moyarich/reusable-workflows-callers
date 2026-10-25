@@ -62,3 +62,11 @@ Run the private/manual **Inventory reusable workflow consumers** GitHub Actions 
 ## Release version selection
 
 The `prepare-release-pr.yml` dispatch supports `package-json` (the default) to use each selected package's current declared `package.json` version without incrementing it, alongside `patch`, `minor`, and `major`.
+
+## Copy shared CI callers to other repositories
+
+[`.github/copy.yml`](.github/copy.yml) explicitly lists canonical workflow files and destination repositories. Each destination can specify `include`, `exclude`, and `overrides` keyed by source file path. The generator always reads the **source** workflow, applies destination overrides using `ruamel.yaml`, and copies the generated workflow into the target repository; it does not merge with the target's existing YAML.
+
+The [copy workflow](.github/workflows/copy.yml) generates destination-specific YAML and uses the first-party `reusable-workflows/actions/copy-files-to-another-repository` composite action to transfer it. It runs automatically when canonical files or synchronization logic change on `main`. Manual dispatch defaults to a dry run that clones the destination and prints the diff summary without pushing. The existing `_WORKFLOW_TOKEN` secret must be able to read and write destination repositories and modify workflow files.
+
+Currently, synchronization pushes directly to the destination branch, not a PR. An unchanged generated file results in no new commit. Files removed from the source selection are **not** deleted at the destination. Override keys must already exist in the source workflow; only `jobs`, `env`, `defaults`, `name`, and `run-name` may be overridden. This synchronization does not dynamically dispatch GitHub Actions workflows.
