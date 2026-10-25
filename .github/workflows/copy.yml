@@ -3,18 +3,14 @@ name: Copy shared workflow callers
 on:
   workflow_dispatch:
     inputs:
+      repository:
+        description: Optional single destination repository (owner/name); empty runs all
+        type: string
+        default: ''
       dry-run:
-        description: Preview generated changes without pushing
+        description: Preview changes without creating or updating destination PRs
         type: boolean
-        default: true
-  push:
-    branches: [main]
-    paths:
-      - .github/copy.yml
-      - .github/workflows/ci.yml
-      - .github/workflows/ci_*.yml
-      - .github/workflows/copy.yml
-      - scripts/copy-workflows.py
+        default: false
 
 permissions:
   contents: read
@@ -37,13 +33,16 @@ jobs:
       - id: config
         name: Validate destinations and build matrix
         shell: bash
+        env:
+          REQUESTED_REPOSITORY: ${{ github.event_name == 'workflow_dispatch' && inputs.repository || '' }}
         run: |
           python3 - <<'PY'
           import json, os, re
           from ruamel.yaml import YAML
           config = YAML(typ="safe").load(open(".github/copy.yml"))
-          files = config["source-files"]
-          assert isinstance(files, list) and len(files) and len(files) == len(set(files))
+          source = config["source"]
+          assert source["directory"] == ".github/workflows"
+          assert isinstance(source["include"], list) and source["include"]
           targets = config["repositories"]
           assert isinstance(targets, list) and targets
           names = [t["name"] for t in targets]
@@ -52,6 +51,10 @@ jobs:
               assert re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", target["name"])
               assert re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/-]*", target["branch"])
               assert ".." not in target["branch"]
+          requested = os.environ.get("REQUESTED_REPOSITORY", "")
+          if requested:
+              targets = [t for t in targets if t["name"] == requested]
+              assert len(targets) == 1, "Requested repository is not in the allowlist"
           matrix = {"include": [{"name": t["name"], "branch": t["branch"]} for t in targets]}
           with open(os.environ["GITHUB_OUTPUT"], "a") as out:
               out.write("matrix=" + json.dumps(matrix, separators=(",", ":")) + "\n")
@@ -70,17 +73,27 @@ jobs:
           persist-credentials: false
       - name: Install YAML parser
         run: python3 -m pip install --quiet 'ruamel.yaml>=0.18,<0.20'
+      - name: Test workflow generation
+        run: python3 -m unittest discover -s tests -p 'test_copy_workflows.py' -v
+      - name: Read destination workflow inventory
+        env:
+          GH_TOKEN: ${{ secrets._WORKFLOW_TOKEN }}
+          DEST_REPO: ${{ matrix.name }}
+          DEST_BRANCH: ${{ matrix.branch }}
+        run: |
+          gh api "repos/$DEST_REPO/contents/.github/workflows?ref=$DEST_BRANCH" --jq '[.[] | select(.type == "file") | .name]' > "$RUNNER_TEMP/existing-workflows.json"
       - name: Generate repository-specific workflows
         env:
           DEST_REPO: ${{ matrix.name }}
         run: |
-          python3 scripts/copy-workflows.py --repository "$DEST_REPO" --output "$RUNNER_TEMP/generated"
+          python3 scripts/copy-workflows.py --repository "$DEST_REPO" --output "$RUNNER_TEMP/generated" --existing-files "$RUNNER_TEMP/existing-workflows.json"
       - name: Copy generated workflows to destination
-        uses: moyarich/reusable-workflows/actions/copy-files-to-another-repository@feat/copy-files-to-another-repository
+        uses: moyarich/reusable-workflows/actions/copy-files-to-another-repository@main
         with:
           token: ${{ secrets._WORKFLOW_TOKEN }}
           source-directory: ${{ runner.temp }}/generated
           destination-repository: ${{ matrix.name }}
           destination-branch: ${{ matrix.branch }}
+          mode: pr
           dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run || false }}
           commit-message: "chore(ci): sync shared workflow callers from ${{ github.repository }}@${{ github.sha }}"
