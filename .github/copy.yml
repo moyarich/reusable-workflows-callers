@@ -1,8 +1,9 @@
 # Central source: moyarich/reusable-workflows-callers
-# Each entry explicitly opts a destination repository into synchronization.
-# Copy only shared CI callers; never copy all .github/workflows files because
-# release, publishing, and repository-specific workflows may differ.
+# Every destination explicitly opts into individual canonical workflow files.
+# Destination updates open reviewable pull requests; do not auto-merge them.
+# Repository-specific workflows not listed here are never copied or deleted.
 source-files:
+  - .github/workflows/check-dist.yml
   - .github/workflows/ci.yml
   - .github/workflows/ci_actionlint.yml
   - .github/workflows/ci_cli.yml
@@ -10,31 +11,274 @@ source-files:
   - .github/workflows/ci_playwright.yml
   - .github/workflows/ci_prettier.yml
   - .github/workflows/ci_storybook.yml
+  - .github/workflows/delete-release-tag.yml
+  - .github/workflows/history-cleanup.yml
+  - .github/workflows/issue-dependencies_manage.yml
+  - .github/workflows/issue-dependencies_set.yml
+  - .github/workflows/issue-dependencies_show-tree.yml
+  - .github/workflows/pages.yml
+  - .github/workflows/prepare-release-pr.yml
+  - .github/workflows/publish-browser-extension.yml
+  - .github/workflows/publish-vscode-vsx.yml
+  - .github/workflows/publish.yml
+  - .github/workflows/release-approved-pr.yml
+  - .github/workflows/release-draft.yml
+  - .github/workflows/release-tag.yml
+  - .github/workflows/release.yml
+  - .github/workflows/reset-release.yml
+  - .github/workflows/restore-release.yml
   - .github/workflows/sync-release-package-choices.yml
+  - .github/workflows/upgrade-dependencies.yml
 destination-directory: ".github/workflows"
 repositories:
-  - name: moyarich/console
-    branch: main
-    exclude: [.github/workflows/sync-release-package-choices.yml]
-  - name: moyarich/moyaforge
-    branch: main
-    exclude: [.github/workflows/sync-release-package-choices.yml]
-  - name: moyarich/workspace-tools
-    branch: main
-    exclude: [.github/workflows/sync-release-package-choices.yml]
   - name: moyarich/github_emulator
     branch: main
-    include: [.github/workflows/sync-release-package-choices.yml]
-# Include additional repositories only after checking their workflows.
-
-# Optional per-repository customization (canonical source is always used):
-#   include:
-#     - .github/workflows/ci_playwright.yml
-#   exclude:
-#     - .github/workflows/ci_storybook.yml
-#   overrides:
-#     .github/workflows/ci_playwright.yml:
-#       jobs:
-#         playwright:
-#           with:
-#             checkout-sha: ''
+    include:
+      - .github/workflows/check-dist.yml
+      - .github/workflows/ci.yml
+      - .github/workflows/ci_actionlint.yml
+      - .github/workflows/ci_cli.yml
+      - .github/workflows/ci_package-lock.yml
+      - .github/workflows/ci_playwright.yml
+      - .github/workflows/ci_prettier.yml
+      - .github/workflows/ci_storybook.yml
+      - .github/workflows/delete-release-tag.yml
+      - .github/workflows/history-cleanup.yml
+      - .github/workflows/issue-dependencies_manage.yml
+      - .github/workflows/issue-dependencies_set.yml
+      - .github/workflows/issue-dependencies_show-tree.yml
+      - .github/workflows/pages.yml
+      - .github/workflows/prepare-release-pr.yml
+      - .github/workflows/publish-browser-extension.yml
+      - .github/workflows/publish-vscode-vsx.yml
+      - .github/workflows/publish.yml
+      - .github/workflows/release-approved-pr.yml
+      - .github/workflows/release-draft.yml
+      - .github/workflows/release-tag.yml
+      - .github/workflows/release.yml
+      - .github/workflows/reset-release.yml
+      - .github/workflows/restore-release.yml
+      - .github/workflows/sync-release-package-choices.yml
+      - .github/workflows/upgrade-dependencies.yml
+  - name: moyarich/moyaforge
+    branch: main
+    include:
+      - .github/workflows/check-dist.yml
+      - .github/workflows/ci.yml
+      - .github/workflows/ci_actionlint.yml
+      - .github/workflows/ci_cli.yml
+      - .github/workflows/ci_package-lock.yml
+      - .github/workflows/ci_playwright.yml
+      - .github/workflows/ci_prettier.yml
+      - .github/workflows/ci_storybook.yml
+      - .github/workflows/delete-release-tag.yml
+      - .github/workflows/history-cleanup.yml
+      - .github/workflows/pages.yml
+      - .github/workflows/prepare-release-pr.yml
+      - .github/workflows/publish.yml
+      - .github/workflows/release-approved-pr.yml
+      - .github/workflows/release-draft.yml
+      - .github/workflows/release.yml
+      - .github/workflows/reset-release.yml
+      - .github/workflows/restore-release.yml
+      - .github/workflows/sync-release-package-choices.yml
+      - .github/workflows/upgrade-dependencies.yml
+  - name: moyarich/autofilename
+    branch: main
+    include:
+      - .github/workflows/ci.yml
+      - .github/workflows/delete-release-tag.yml
+      - .github/workflows/history-cleanup.yml
+      - .github/workflows/publish-vscode-vsx.yml
+      - .github/workflows/release-draft.yml
+      - .github/workflows/release.yml
+      - .github/workflows/reset-release.yml
+      - .github/workflows/restore-release.yml
+      - .github/workflows/upgrade-dependencies.yml
+  - name: moyarich/colorshower
+    branch: main
+    include:
+      - .github/workflows/check-dist.yml
+      - .github/workflows/ci_actionlint.yml
+      - .github/workflows/ci_cli.yml
+      - .github/workflows/ci_package-lock.yml
+      - .github/workflows/ci_prettier.yml
+      - .github/workflows/delete-release-tag.yml
+      - .github/workflows/history-cleanup.yml
+      - .github/workflows/pages.yml
+      - .github/workflows/prepare-release-pr.yml
+      - .github/workflows/publish-vscode-vsx.yml
+      - .github/workflows/publish.yml
+      - .github/workflows/release-approved-pr.yml
+      - .github/workflows/release-draft.yml
+      - .github/workflows/release.yml
+      - .github/workflows/reset-release.yml
+      - .github/workflows/restore-release.yml
+      - .github/workflows/sync-release-package-choices.yml
+      - .github/workflows/upgrade-dependencies.yml
+  - name: moyarich/workspace-tools
+    branch: main
+    include:
+      - .github/workflows/check-dist.yml
+      - .github/workflows/ci.yml
+      - .github/workflows/ci_actionlint.yml
+      - .github/workflows/ci_cli.yml
+      - .github/workflows/ci_package-lock.yml
+      - .github/workflows/ci_playwright.yml
+      - .github/workflows/ci_prettier.yml
+      - .github/workflows/ci_storybook.yml
+      - .github/workflows/delete-release-tag.yml
+      - .github/workflows/history-cleanup.yml
+      - .github/workflows/issue-dependencies_manage.yml
+      - .github/workflows/issue-dependencies_set.yml
+      - .github/workflows/issue-dependencies_show-tree.yml
+      - .github/workflows/pages.yml
+      - .github/workflows/prepare-release-pr.yml
+      - .github/workflows/publish.yml
+      - .github/workflows/release-approved-pr.yml
+      - .github/workflows/release-draft.yml
+      - .github/workflows/release.yml
+      - .github/workflows/reset-release.yml
+      - .github/workflows/restore-release.yml
+      - .github/workflows/sync-release-package-choices.yml
+      - .github/workflows/upgrade-dependencies.yml
+  - name: moyarich/css-expand-collapse
+    branch: main
+    include:
+      - .github/workflows/check-dist.yml
+      - .github/workflows/ci.yml
+      - .github/workflows/delete-release-tag.yml
+      - .github/workflows/history-cleanup.yml
+      - .github/workflows/pages.yml
+      - .github/workflows/prepare-release-pr.yml
+      - .github/workflows/publish.yml
+      - .github/workflows/release-approved-pr.yml
+      - .github/workflows/release-draft.yml
+      - .github/workflows/release.yml
+      - .github/workflows/reset-release.yml
+      - .github/workflows/restore-release.yml
+      - .github/workflows/sync-release-package-choices.yml
+      - .github/workflows/upgrade-dependencies.yml
+  - name: moyarich/console
+    branch: main
+    include:
+      - .github/workflows/check-dist.yml
+      - .github/workflows/ci.yml
+      - .github/workflows/ci_actionlint.yml
+      - .github/workflows/ci_cli.yml
+      - .github/workflows/ci_package-lock.yml
+      - .github/workflows/ci_playwright.yml
+      - .github/workflows/ci_prettier.yml
+      - .github/workflows/ci_storybook.yml
+      - .github/workflows/delete-release-tag.yml
+      - .github/workflows/history-cleanup.yml
+      - .github/workflows/pages.yml
+      - .github/workflows/prepare-release-pr.yml
+      - .github/workflows/publish.yml
+      - .github/workflows/release-approved-pr.yml
+      - .github/workflows/release-draft.yml
+      - .github/workflows/release-tag.yml
+      - .github/workflows/release.yml
+      - .github/workflows/reset-release.yml
+      - .github/workflows/restore-release.yml
+      - .github/workflows/sync-release-package-choices.yml
+      - .github/workflows/upgrade-dependencies.yml
+  - name: moyarich/JotebookSync
+    branch: main
+    include:
+      - .github/workflows/delete-release-tag.yml
+      - .github/workflows/history-cleanup.yml
+      - .github/workflows/publish-vscode-vsx.yml
+      - .github/workflows/publish.yml
+      - .github/workflows/release.yml
+      - .github/workflows/upgrade-dependencies.yml
+  - name: moyarich/vscode-act-runner-local
+    branch: main
+    include:
+      - .github/workflows/ci.yml
+      - .github/workflows/delete-release-tag.yml
+      - .github/workflows/history-cleanup.yml
+      - .github/workflows/publish-vscode-vsx.yml
+      - .github/workflows/release.yml
+      - .github/workflows/upgrade-dependencies.yml
+  - name: moyarich/dev-toolkit
+    branch: main
+    include:
+      - .github/workflows/check-dist.yml
+      - .github/workflows/delete-release-tag.yml
+      - .github/workflows/prepare-release-pr.yml
+      - .github/workflows/publish.yml
+      - .github/workflows/release-approved-pr.yml
+      - .github/workflows/release-draft.yml
+      - .github/workflows/release.yml
+      - .github/workflows/reset-release.yml
+      - .github/workflows/restore-release.yml
+      - .github/workflows/upgrade-dependencies.yml
+  - name: moyarich/vscode-dev-toolkit
+    branch: main
+    include:
+      - .github/workflows/check-dist.yml
+      - .github/workflows/ci.yml
+      - .github/workflows/delete-release-tag.yml
+      - .github/workflows/history-cleanup.yml
+      - .github/workflows/pages.yml
+      - .github/workflows/prepare-release-pr.yml
+      - .github/workflows/publish.yml
+      - .github/workflows/release-approved-pr.yml
+      - .github/workflows/release-draft.yml
+      - .github/workflows/release.yml
+      - .github/workflows/reset-release.yml
+      - .github/workflows/restore-release.yml
+      - .github/workflows/upgrade-dependencies.yml
+  - name: moyarich/css-color-parser
+    branch: main
+    include:
+      - .github/workflows/check-dist.yml
+      - .github/workflows/ci.yml
+      - .github/workflows/delete-release-tag.yml
+      - .github/workflows/history-cleanup.yml
+      - .github/workflows/pages.yml
+      - .github/workflows/prepare-release-pr.yml
+      - .github/workflows/publish.yml
+      - .github/workflows/release-approved-pr.yml
+      - .github/workflows/release-draft.yml
+      - .github/workflows/release.yml
+      - .github/workflows/reset-release.yml
+      - .github/workflows/restore-release.yml
+      - .github/workflows/upgrade-dependencies.yml
+  - name: moyarich/vscode-dependency-links
+    branch: main
+    include:
+      - .github/workflows/ci.yml
+      - .github/workflows/delete-release-tag.yml
+      - .github/workflows/history-cleanup.yml
+      - .github/workflows/publish-vscode-vsx.yml
+  - name: moyarich/vue-webview-vite
+    branch: main
+    include:
+      - .github/workflows/delete-release-tag.yml
+      - .github/workflows/publish-vscode-vsx.yml
+  - name: moyarich/pointer-bubble
+    branch: main
+    include:
+      - .github/workflows/check-dist.yml
+      - .github/workflows/ci.yml
+      - .github/workflows/delete-release-tag.yml
+      - .github/workflows/history-cleanup.yml
+      - .github/workflows/prepare-release-pr.yml
+      - .github/workflows/publish.yml
+      - .github/workflows/release-draft.yml
+      - .github/workflows/release.yml
+      - .github/workflows/reset-release.yml
+      - .github/workflows/restore-release.yml
+  - name: moyarich/css-modules-kit
+    branch: main
+    include:
+      - .github/workflows/ci.yml
+      - .github/workflows/delete-release-tag.yml
+      - .github/workflows/prepare-release-pr.yml
+      - .github/workflows/publish.yml
+      - .github/workflows/release-draft.yml
+      - .github/workflows/release.yml
+      - .github/workflows/reset-release.yml
+      - .github/workflows/restore-release.yml
