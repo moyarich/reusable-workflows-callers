@@ -13,7 +13,7 @@ on:
       - .github/copy.yml
       - .github/workflows/ci.yml
       - .github/workflows/ci_*.yml
-      - .github/workflows/sync-release-package-choices.yml
+      - .github/workflows/*.yml
       - .github/workflows/copy.yml
       - scripts/copy-workflows.py
       - tests/test_copy_workflows.py
@@ -74,11 +74,18 @@ jobs:
         run: python3 -m pip install --quiet 'ruamel.yaml>=0.18,<0.20'
       - name: Test workflow generation
         run: python3 -m unittest discover -s tests -p 'test_copy_workflows.py' -v
+      - name: Read destination workflow inventory
+        env:
+          GH_TOKEN: ${{ secrets._WORKFLOW_TOKEN }}
+          DEST_REPO: ${{ matrix.name }}
+          DEST_BRANCH: ${{ matrix.branch }}
+        run: |
+          gh api "repos/$DEST_REPO/contents/.github/workflows?ref=$DEST_BRANCH" --jq '[.[] | select(.type == "file") | .name]' > "$RUNNER_TEMP/existing-workflows.json"
       - name: Generate repository-specific workflows
         env:
           DEST_REPO: ${{ matrix.name }}
         run: |
-          python3 scripts/copy-workflows.py --repository "$DEST_REPO" --output "$RUNNER_TEMP/generated"
+          python3 scripts/copy-workflows.py --repository "$DEST_REPO" --output "$RUNNER_TEMP/generated" --existing-files "$RUNNER_TEMP/existing-workflows.json"
       - name: Copy generated workflows to destination
         uses: moyarich/reusable-workflows/actions/copy-files-to-another-repository@feat/copy-files-to-another-repository
         with:
