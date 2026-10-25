@@ -34,6 +34,23 @@ repositories:
     branch: main
   - name: moyarich/workspace-tools
     branch: main
+    # Package options are maintained by sync-release-package-choices.yml.
+    # Retain local workspace/app manifest triggers when copying this caller.
+    overrides:
+      .github/workflows/sync-release-package-choices.yml:
+        on:
+          push:
+            paths:
+              - package.json
+              - packages/**/package.json
+              - apps/**/package.json
+              - .github/workflows/check-dist.yml
+              - .github/workflows/release.yml
+              - .github/workflows/release-draft.yml
+              - .github/workflows/publish.yml
+              - .github/workflows/restore-release.yml
+              - .github/workflows/reset-release.yml
+              - .github/workflows/sync-release-package-choices.yml
   - name: moyarich/css-expand-collapse
     branch: main
   - name: moyarich/console
