@@ -13,8 +13,10 @@ on:
       - .github/copy.yml
       - .github/workflows/ci.yml
       - .github/workflows/ci_*.yml
+      - .github/workflows/sync-release-package-choices.yml
       - .github/workflows/copy.yml
       - scripts/copy-workflows.py
+      - tests/test_copy_workflows.py
 
 permissions:
   contents: read
@@ -70,6 +72,8 @@ jobs:
           persist-credentials: false
       - name: Install YAML parser
         run: python3 -m pip install --quiet 'ruamel.yaml>=0.18,<0.20'
+      - name: Test workflow generation
+        run: python3 -m unittest discover -s tests -p 'test_copy_workflows.py' -v
       - name: Generate repository-specific workflows
         env:
           DEST_REPO: ${{ matrix.name }}
@@ -82,5 +86,5 @@ jobs:
           source-directory: ${{ runner.temp }}/generated
           destination-repository: ${{ matrix.name }}
           destination-branch: ${{ matrix.branch }}
-          dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run || false }}
+          dry-run: ${{ github.event_name != 'workflow_dispatch' || inputs.dry-run }}
           commit-message: "chore(ci): sync shared workflow callers from ${{ github.repository }}@${{ github.sha }}"
