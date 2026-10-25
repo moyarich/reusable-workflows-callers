@@ -11,16 +11,6 @@ on:
         description: Preview changes without creating or updating destination PRs
         type: boolean
         default: false
-  push:
-    branches: [main]
-    paths:
-      - .github/copy.yml
-      - .github/workflows/ci.yml
-      - .github/workflows/ci_*.yml
-      - .github/workflows/*.yml
-      - .github/workflows/copy.yml
-      - scripts/copy-workflows.py
-      - tests/test_copy_workflows.py
 
 permissions:
   contents: read
