@@ -3,6 +3,10 @@ name: Copy shared workflow callers
 on:
   workflow_dispatch:
     inputs:
+      repository:
+        description: Optional single destination repository (owner/name); empty runs all
+        type: string
+        default: ''
       dry-run:
         description: Preview changes without creating or updating destination PRs
         type: boolean
@@ -39,6 +43,8 @@ jobs:
       - id: config
         name: Validate destinations and build matrix
         shell: bash
+        env:
+          REQUESTED_REPOSITORY: ${{ github.event_name == 'workflow_dispatch' && inputs.repository || '' }}
         run: |
           python3 - <<'PY'
           import json, os, re
@@ -55,6 +61,10 @@ jobs:
               assert re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", target["name"])
               assert re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/-]*", target["branch"])
               assert ".." not in target["branch"]
+          requested = os.environ.get("REQUESTED_REPOSITORY", "")
+          if requested:
+              targets = [t for t in targets if t["name"] == requested]
+              assert len(targets) == 1, "Requested repository is not in the allowlist"
           matrix = {"include": [{"name": t["name"], "branch": t["branch"]} for t in targets]}
           with open(os.environ["GITHUB_OUTPUT"], "a") as out:
               out.write("matrix=" + json.dumps(matrix, separators=(",", ":")) + "\n")
