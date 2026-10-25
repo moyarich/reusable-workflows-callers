@@ -101,7 +101,7 @@ def build(config_file: Path, repository: str, output: Path, existing_files=None)
         if source in overrides:
             document = yaml.load(path)
             patch = overrides[source]
-            if not isinstance(patch, dict) or any(k not in ("jobs", "env", "defaults", "name", "run-name") for k in patch):
+            if not isinstance(patch, dict) or any(k not in ("on", "jobs", "env", "defaults", "name", "run-name") for k in patch):
                 raise ValueError(f"Unsafe workflow override: {source}")
             merge(document, patch)
             with dst.open("w") as handle:
