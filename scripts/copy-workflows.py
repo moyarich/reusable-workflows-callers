@@ -35,7 +35,20 @@ def matches(filename, patterns):
     return any(fnmatch.fnmatchcase(filename, pattern) for pattern in patterns)
 
 
-def build(config_file: Path, repository: str, output: Path, existing_files=None):
+def publishing_kind(workflow_text):
+    """Recognize publisher implementations; custom and single-package are distinct."""
+    if "reusable_bulk-npm-publish.yml" in workflow_text:
+        return "npm-monorepo"
+    if "reusable_npm-publish.yml" in workflow_text:
+        return "npm-single"
+    if "reusable_vscode-publish.yml" in workflow_text:
+        return "vscode"
+    if "reusable_browser-extension-publish.yml" in workflow_text:
+        return "browser"
+    return "custom"
+
+
+def build(config_file: Path, repository: str, output: Path, existing_files=None, destination_publish=None):
     config = yaml.load(config_file)
     # Support the original flat source-files config for existing generator users.
     if "source" in config:
@@ -89,6 +102,19 @@ def build(config_file: Path, repository: str, output: Path, existing_files=None)
     existing = None if existing_files is None else set(existing_files)
     if existing is not None:
         selected = [f for f in selected if Path(f).name in existing or matches(Path(f).name, create)]
+    # Never replace an existing publisher with a different publishing contract.
+    # The destination workflow is fetched from the target branch, not guessed
+    # from package names or repository names.
+    if ".github/workflows/publish.yml" in selected:
+        if destination_publish is None:
+            raise ValueError("Destination publish.yml content required for compatibility validation")
+        source_kind = publishing_kind(Path(".github/workflows/publish.yml").read_text())
+        dest_kind = publishing_kind(destination_publish)
+        if source_kind != dest_kind:
+            raise ValueError(
+                f"Incompatible publish.yml for {repository}: destination={dest_kind}, "
+                f"canonical={source_kind}; use a dedicated canonical publisher"
+            )
     result = []
     for source in selected:
         path = Path(source)
@@ -119,8 +145,10 @@ if __name__ == "__main__":
     parser.add_argument("--repository", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--existing-files", type=Path)
+    parser.add_argument("--destination-publish-file", type=Path)
     args = parser.parse_args()
     existing = json.loads(args.existing_files.read_text()) if args.existing_files else None
     if existing is not None and (not isinstance(existing, list) or not all(isinstance(x, str) for x in existing)):
         parser.error("--existing-files must contain a JSON array of filenames")
-    build(args.config, args.repository, args.output, existing)
+    publish = args.destination_publish_file.read_text() if args.destination_publish_file else None
+    build(args.config, args.repository, args.output, existing, publish)
