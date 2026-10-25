@@ -34,6 +34,13 @@ repositories:
     branch: main
   - name: moyarich/workspace-tools
     branch: main
+    # Preserve local tooling and repository-specific release/publishing contracts.
+    exclude:
+      - prepare-release-pr.yml
+      - publish*.yml
+      - release*.yml
+      - sync-release-package-choices.yml
+      - pages.yml
   - name: moyarich/css-expand-collapse
     branch: main
   - name: moyarich/console
