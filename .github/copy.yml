@@ -57,14 +57,23 @@ repositories:
     branch: main
   - name: moyarich/JotebookSync
     branch: main
+    # Existing publish.yml has a different publishing contract from the npm monorepo caller.
+    exclude:
+      - publish.yml
   - name: moyarich/vscode-act-runner-local
     branch: main
   - name: moyarich/dev-toolkit
     branch: main
   - name: moyarich/vscode-dev-toolkit
     branch: main
+    # Existing publish.yml has a different publishing contract from the npm monorepo caller.
+    exclude:
+      - publish.yml
   - name: moyarich/css-color-parser
     branch: main
+    # Existing publish.yml has a different publishing contract from the npm monorepo caller.
+    exclude:
+      - publish.yml
   - name: moyarich/vscode-dependency-links
     branch: main
   - name: moyarich/vue-webview-vite
