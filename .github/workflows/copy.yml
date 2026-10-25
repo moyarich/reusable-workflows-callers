@@ -82,11 +82,21 @@ jobs:
           DEST_BRANCH: ${{ matrix.branch }}
         run: |
           gh api "repos/$DEST_REPO/contents/.github/workflows?ref=$DEST_BRANCH" --jq '[.[] | select(.type == "file") | .name]' > "$RUNNER_TEMP/existing-workflows.json"
+      - name: Read existing destination publisher
+        env:
+          GH_TOKEN: ${{ secrets._WORKFLOW_TOKEN }}
+          DEST_REPO: ${{ matrix.name }}
+          DEST_BRANCH: ${{ matrix.branch }}
+        shell: bash
+        run: |
+          if jq -e 'index("publish.yml") != null' "$RUNNER_TEMP/existing-workflows.json" >/dev/null; then
+            gh api "repos/$DEST_REPO/contents/.github/workflows/publish.yml?ref=$DEST_BRANCH" --jq .content | base64 --decode > "$RUNNER_TEMP/destination-publish.yml"
+          fi
       - name: Generate repository-specific workflows
         env:
           DEST_REPO: ${{ matrix.name }}
         run: |
-          python3 scripts/copy-workflows.py --repository "$DEST_REPO" --output "$RUNNER_TEMP/generated" --existing-files "$RUNNER_TEMP/existing-workflows.json"
+          python3 scripts/copy-workflows.py --repository "$DEST_REPO" --output "$RUNNER_TEMP/generated" --existing-files "$RUNNER_TEMP/existing-workflows.json" $(test ! -f "$RUNNER_TEMP/destination-publish.yml" || printf -- "--destination-publish-file %s" "$RUNNER_TEMP/destination-publish.yml")
       - name: Copy generated workflows to destination
         uses: moyarich/reusable-workflows/actions/copy-files-to-another-repository@main
         with:
