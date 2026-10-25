@@ -88,7 +88,7 @@ jobs:
         run: |
           python3 scripts/copy-workflows.py --repository "$DEST_REPO" --output "$RUNNER_TEMP/generated" --existing-files "$RUNNER_TEMP/existing-workflows.json"
       - name: Copy generated workflows to destination
-        uses: moyarich/reusable-workflows/actions/copy-files-to-another-repository@feat/copy-files-to-another-repository
+        uses: moyarich/reusable-workflows/actions/copy-files-to-another-repository@main
         with:
           token: ${{ secrets._WORKFLOW_TOKEN }}
           source-directory: ${{ runner.temp }}/generated
