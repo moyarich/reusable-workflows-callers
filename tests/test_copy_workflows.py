@@ -62,6 +62,13 @@ class CopierTests(unittest.TestCase):
         result = yaml.load(self.output / path)
         self.assertFalse(result["jobs"]["test"]["with"]["enabled"])
 
+    def test_workflow_trigger_override(self):
+        path = ".github/workflows/ci_alpha.yml"
+        self.write_config(include=[path], overrides={path: {"on": {"push": {"paths": ["apps/**/package.json"]}}}})
+        module.build(self.config, "moyarich/github_emulator", self.output)
+        result = yaml.load(self.output / path)
+        self.assertEqual(result["on"]["push"]["paths"], ["apps/**/package.json"])
+
     def test_unknown_override_key_rejected(self):
         path = ".github/workflows/ci_alpha.yml"
         self.write_config(include=[path], overrides={path: {"jobs": {"missing": {}}}})
