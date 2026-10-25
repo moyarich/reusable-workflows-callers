@@ -44,8 +44,9 @@ jobs:
           import json, os, re
           from ruamel.yaml import YAML
           config = YAML(typ="safe").load(open(".github/copy.yml"))
-          files = config["source-files"]
-          assert isinstance(files, list) and len(files) and len(files) == len(set(files))
+          source = config["source"]
+          assert source["directory"] == ".github/workflows"
+          assert isinstance(source["include"], list) and source["include"]
           targets = config["repositories"]
           assert isinstance(targets, list) and targets
           names = [t["name"] for t in targets]
