@@ -10,15 +10,22 @@ source-files:
   - .github/workflows/ci_playwright.yml
   - .github/workflows/ci_prettier.yml
   - .github/workflows/ci_storybook.yml
+  - .github/workflows/sync-release-package-choices.yml
 destination-directory: ".github/workflows"
 repositories:
   - name: moyarich/console
     branch: main
+    exclude: [.github/workflows/sync-release-package-choices.yml]
   - name: moyarich/moyaforge
     branch: main
+    exclude: [.github/workflows/sync-release-package-choices.yml]
   - name: moyarich/workspace-tools
     branch: main
-# Add other repositories after checking that their CI caller filenames match.
+    exclude: [.github/workflows/sync-release-package-choices.yml]
+  - name: moyarich/github_emulator
+    branch: main
+    include: [.github/workflows/sync-release-package-choices.yml]
+# Include additional repositories only after checking their workflows.
 
 # Optional per-repository customization (canonical source is always used):
 #   include:
