@@ -64,6 +64,7 @@ class CopierTests(unittest.TestCase):
 
     def test_workflow_trigger_override(self):
         path = ".github/workflows/ci_alpha.yml"
+        (self.source / "ci_alpha.yml").write_text("name: Alpha\n" + "on:\n  push:\n    paths:\n      - packages/**/package.json\n" + "jobs:\n  test:\n    with:\n      enabled: true\n")
         self.write_config(include=[path], overrides={path: {"on": {"push": {"paths": ["apps/**/package.json"]}}}})
         module.build(self.config, "moyarich/github_emulator", self.output)
         result = yaml.load(self.output / path)
