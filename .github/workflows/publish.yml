@@ -19,10 +19,13 @@ on:
           - checkout:upstream;branch:main
           - registry:npm:latest
       package:
-        description: Package name, workspace directory, or all
+        description: Select a publishable workspace package
         required: true
-        type: string
+        type: choice
         default: all
+        options:
+          - all
+          - "packages/example"
       registry:
         description: Registry alias (npm, github, all, or a configured registry)
         required: true
