@@ -2,6 +2,12 @@ name: Sync copier destination choices
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/copy-files-config.yml
+      - .github/workflows/sync_copy-destination-choices.yml
+      - .github/workflows/copy-files-to-another-repository.yml
   schedule:
     - cron: "17 7 * * *"
 
@@ -20,7 +26,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Checkout central configuration and CLI
+      - name: Checkout central CLI
         uses: actions/checkout@v7
         with:
           repository: moyarich/reusable-workflows
@@ -34,7 +40,7 @@ jobs:
       - name: Synchronize destination choices
         run: >-
           node central/actions/cli/index.mjs sync-workflow-choices
-          --source central/.github/copy-files-config.yml
+          --source .github/copy-files-config.yml
           --values-path repositories
           --value-field name
           --prepend all
@@ -44,7 +50,7 @@ jobs:
       - name: Synchronize canonical workflow choices
         run: >-
           node central/actions/cli/index.mjs copy-workflow-choices
-          --config central/.github/copy-files-config.yml
+          --config .github/copy-files-config.yml
           --source-directory .github/workflows
           --workflow .github/workflows/copy-files-to-another-repository.yml
       - name: Format dispatcher
