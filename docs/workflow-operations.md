@@ -30,10 +30,10 @@ For reproducible releases, pin a published Workspace Tools CLI version or immuta
 
 ## Updating callers across repositories
 
-The copy workflow runs **manually**. Merging changes to this template does **not** automatically synchronize other repositories.
+The copy dispatcher in this repository runs **manually**. Merging changes to this template does **not** automatically synchronize other repositories.
 
 1. Update the canonical `.github/workflows/*.yml` caller here and merge your change.
-2. Open [Copy canonical workflow callers](https://github.com/moyarich/reusable-workflows/actions/workflows/copy.yml) in the upstream repository.
+2. Open [Copy files to another repository](https://github.com/moyarich/reusable-workflows-callers/actions/workflows/copy-files-to-another-repository.yml) in this repository.
 3. Dispatch with `dry-run: true` to preview the proposed changes. Optionally select a single `owner/repo` destination.
 4. When the preview is correct, dispatch with `dry-run: false` to create destination pull requests.
 5. Review the destination PRs and CI results before merging.
@@ -43,7 +43,7 @@ The default PR mode does **not** directly rewrite a destination's `main` branch.
 ### How synchronization works
 
 - [Central copy configuration](https://github.com/moyarich/reusable-workflows/blob/main/.github/copy-files-config.yml) defines `source.repository: moyarich/reusable-workflows-callers`, filename patterns, destinations, exclusions, and overrides.
-- [The upstream `copy.yml` caller](https://github.com/moyarich/reusable-workflows/blob/main/.github/workflows/copy.yml) invokes [`reusable_copy-files-to-another-repository.yml`](https://github.com/moyarich/reusable-workflows/blob/main/.github/workflows/reusable_copy-files-to-another-repository.yml).
+- [The caller-owned copy dispatcher](../.github/workflows/copy-files-to-another-repository.yml) invokes [`reusable_copy-files-to-another-repository.yml`](https://github.com/moyarich/reusable-workflows/blob/main/.github/workflows/reusable_copy-files-to-another-repository.yml).
 - [The copier implementation and tests](https://github.com/moyarich/reusable-workflows/tree/main/packages/copy-files-to-another-repository) live upstream.
 - Existing selected workflow files are updated. New files require an explicit `create-files` allowlist; removed workflows are **not** deleted.
 - Per-repository `exclude` and `overrides` rules stay in the upstream configuration.
