@@ -29,10 +29,10 @@ destination-directory: .github/workflows
 defaults:
   branch: main
   include: ["*.yml"]
-  exclude: ["publish*.yml"]
+  exclude: ["publish*.yml", "ci_npm-package-lint.yml"]
 profiles:
   npm:
-    include: [publish.yml]
+    include: [publish.yml, ci_npm-package-lint.yml]
   vscode:
     include: [publish-vscode-vsx.yml]
   browser:
