@@ -71,3 +71,9 @@ The job commits [the generated inventory](workflow-consumers.md) and prints the 
 - [Template development](template-development.md)
 - [Generated workflow consumer inventory](workflow-consumers.md)
 - [Upstream reusable workflows](https://github.com/moyarich/reusable-workflows)
+
+## Approved preparation PR releases
+
+The `release-approved-pr.yml` caller runs automatically after a same-repository `release/prepare-*` PR is merged into `main`. It also supports **Run workflow** with `pr-number` to validate and replay a previously merged preparation PR. For manual runs, `dry-run` defaults to **true**, previewing GitHub Release drafts without writing them; select `false` only when ready to create or update drafts. Automatic merged-PR runs use `dry-run: false`.
+
+The **Approved release inputs** job validates the merged PR and writes a GitHub Actions job summary with the PR number, title, source branch, merge SHA, reusable workflow, and effective dry-run mode. The reusable workflow is [`reusable_release-approved.yml`](https://github.com/moyarich/reusable-workflows/blob/main/.github/workflows/reusable_release-approved.yml). Reset/restore callers use the upstream bulk workflows, which in turn invoke `reusable_release-reset.yml` and `reusable_release-restore.yml`.
