@@ -7,6 +7,10 @@ run-name: >-
 on:
   workflow_dispatch:
     inputs:
+      show-input-summary:
+        description: Show workflow input parameters
+        type: boolean
+        default: true
       # Keep this list synchronized with the central configuration in
       # moyarich/reusable-workflows/.github/copy-files-config.yml.
       # workflow_dispatch choice options are static; GitHub does not support dynamic choices.
@@ -88,6 +92,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  workflow-call-input-summary:
+    name: "job: Reusable workflow parameters"
+    if: ${{ inputs.show-input-summary && github.event_name == 'workflow_dispatch' }}
+    permissions:
+      contents: read
+    uses: moyarich/reusable-workflows/.github/workflows/reusable_dispatch-input-summary.yml@main
+    with:
+      parameters-json: ${{ toJSON(inputs) }}
+      exclude-inputs: '["show-input-summary"]'
+      heading: "Workflow inputs"
+
   copy:
     name: Synchronize selected destinations
     uses: moyarich/reusable-workflows/.github/workflows/reusable_copy-files-to-another-repository.yml@main
