@@ -19,12 +19,12 @@ Check the following for each destination repository:
 
 ### Important defaults
 
-| Setting | Behavior |
-| --- | --- |
-| `prepare-release-pr.yml` version selection | `package-json` (default) uses each selected package's existing declared version without incrementing it; `patch`, `minor`, and `major` are also supported |
-| Workspace Tools CLI source | Migrated callers use `checkout:upstream;branch:main`, not `checkout:current`, since this template does not contain Workspace Tools |
-| `check-dist.yml` | Opt-in for projects committing build output; it fails with gitignored package `dist/` directories until you track the output or use an artifact-only check |
-| `npm run pack:check` | Dry-runs packaging for every npm workspace; narrow the selection if needed |
+| Setting                                    | Behavior                                                                                                                                                   |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `prepare-release-pr.yml` version selection | `package-json` (default) uses each selected package's existing declared version without incrementing it; `patch`, `minor`, and `major` are also supported  |
+| Workspace Tools CLI source                 | Migrated callers use `checkout:upstream;branch:main`, not `checkout:current`, since this template does not contain Workspace Tools                         |
+| `check-dist.yml`                           | Opt-in for projects committing build output; it fails with gitignored package `dist/` directories until you track the output or use an artifact-only check |
+| `npm run pack:check`                       | Dry-runs packaging for every npm workspace; narrow the selection if needed                                                                                 |
 
 For reproducible releases, pin a published Workspace Tools CLI version or immutable commit rather than a moving branch.
 

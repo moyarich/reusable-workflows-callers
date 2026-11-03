@@ -23,23 +23,23 @@ Then rename the `@template/*` workspaces, replace the sample code, and review th
 
 ## What's included?
 
-| Location | What you'll find |
-| --- | --- |
-| [`packages/example/`](packages/example/) | Example TypeScript library |
-| [`apps/playground/`](apps/playground/) | Vite + React playground |
+| Location                                   | What you'll find                    |
+| ------------------------------------------ | ----------------------------------- |
+| [`packages/example/`](packages/example/)   | Example TypeScript library          |
+| [`apps/playground/`](apps/playground/)     | Vite + React playground             |
 | [`.github/workflows/`](.github/workflows/) | CI, release and maintenance callers |
-| [`docs/`](docs/) | Setup and operations guides |
+| [`docs/`](docs/)                           | Setup and operations guides         |
 
 ## Common commands
 
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Start workspace development |
-| `npm run checks` | Run formatting, linting, type checks, tests and build |
-| `npm run test:unit` | Run Vitest unit tests |
-| `npm run test:e2e` | Run Playwright end-to-end tests |
-| `npm run storybook` | Open Storybook |
-| `npm run pack:check` | Dry-run packaging for all workspaces |
+| Command              | Purpose                                               |
+| -------------------- | ----------------------------------------------------- |
+| `npm run dev`        | Start workspace development                           |
+| `npm run checks`     | Run formatting, linting, type checks, tests and build |
+| `npm run test:unit`  | Run Vitest unit tests                                 |
+| `npm run test:e2e`   | Run Playwright end-to-end tests                       |
+| `npm run storybook`  | Open Storybook                                        |
+| `npm run pack:check` | Dry-run packaging for all workspaces                  |
 
 See [Template development](docs/template-development.md) for setup, test prerequisites and configuration.
 

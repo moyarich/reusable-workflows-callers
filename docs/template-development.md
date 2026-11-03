@@ -6,16 +6,16 @@ Use this guide to customize and test a repository created from the template.
 
 ## Project layout
 
-| Path | Role |
-| --- | --- |
-| `packages/example/` | Buildable TypeScript library with Vitest tests |
-| `apps/playground/` | Vite + React app consuming the example library |
-| `.github/workflows/` | Thin CI, release, publish, and maintenance workflow callers |
-| `eslint.config.mjs` | Shared ESLint flat configuration and Prettier compatibility |
-| `tsconfig.json` | Shared TypeScript defaults |
-| `vitest.config.ts` | Unit test discovery |
-| `playwright.config.ts` | End-to-end test configuration |
-| `.storybook/` | Storybook configuration |
+| Path                   | Role                                                        |
+| ---------------------- | ----------------------------------------------------------- |
+| `packages/example/`    | Buildable TypeScript library with Vitest tests              |
+| `apps/playground/`     | Vite + React app consuming the example library              |
+| `.github/workflows/`   | Thin CI, release, publish, and maintenance workflow callers |
+| `eslint.config.mjs`    | Shared ESLint flat configuration and Prettier compatibility |
+| `tsconfig.json`        | Shared TypeScript defaults                                  |
+| `vitest.config.ts`     | Unit test discovery                                         |
+| `playwright.config.ts` | End-to-end test configuration                               |
+| `.storybook/`          | Storybook configuration                                     |
 
 ## Start developing
 
@@ -36,21 +36,21 @@ To adapt this template:
 
 ## Commands
 
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | Start development in configured workspaces |
-| `npm run build` | Build workspaces with build scripts |
-| `npm test` | Run the root Vitest test command |
-| `npm run test:unit` | Run unit tests via `vitest.config.ts` |
-| `npm run test:watch` | Run workspace watch scripts, where present |
-| `npm run typecheck` | Run workspace checks plus root TypeScript check |
-| `npm run lint` | Run ESLint |
-| `npm run format:check` | Check formatting with Prettier |
-| `npm run checks` | Run formatting, lint, type checks, tests, and build |
-| `npm run pack:check` | Dry-run npm package creation for all workspaces |
-| `npm run storybook` | Start Storybook |
-| `npm run build:storybook` | Build Storybook |
-| `npm run test:e2e` | Run Playwright tests |
+| Command                   | What it does                                        |
+| ------------------------- | --------------------------------------------------- |
+| `npm run dev`             | Start development in configured workspaces          |
+| `npm run build`           | Build workspaces with build scripts                 |
+| `npm test`                | Run the root Vitest test command                    |
+| `npm run test:unit`       | Run unit tests via `vitest.config.ts`               |
+| `npm run test:watch`      | Run workspace watch scripts, where present          |
+| `npm run typecheck`       | Run workspace checks plus root TypeScript check     |
+| `npm run lint`            | Run ESLint                                          |
+| `npm run format:check`    | Check formatting with Prettier                      |
+| `npm run checks`          | Run formatting, lint, type checks, tests, and build |
+| `npm run pack:check`      | Dry-run npm package creation for all workspaces     |
+| `npm run storybook`       | Start Storybook                                     |
+| `npm run build:storybook` | Build Storybook                                     |
+| `npm run test:e2e`        | Run Playwright tests                                |
 
 `npm run pack:check` includes **every configured workspace**. Change the workspace selection if only publishable packages should be packed.
 
