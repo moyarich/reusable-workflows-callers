@@ -71,8 +71,19 @@ repositories:
     profiles: [npm]
   - name: moyarich/JotebookSync
     profiles: [vscode]
-    # Root-level VS Code extension: no playground or publishable workspace packages.
-    exclude: [pages.yml, release-draft.yml]
+    # JotebookSync is a root-level VS Code extension, not an npm workspace.
+    exclude: [pages.yml]
+    overrides:
+      .github/workflows/release-draft.yml:
+        on:
+          workflow_dispatch:
+            inputs:
+              include-root-package:
+                default: true
+              changed-packages-only:
+                default: false
+              version-mode:
+                default: package-json
   - name: moyarich/vscode-act-runner-local
     profiles: [vscode]
   - name: moyarich/dev-toolkit
