@@ -21,6 +21,11 @@ on:
           - checkout:current
           - checkout:upstream;branch:main
           - registry:npm:latest
+      include-root-package:
+        description: Also draft releases for the root package (such as a VS Code extension)
+        type: boolean
+        required: true
+        default: false
       package:
         description: Select a publishable workspace package
         required: true
@@ -92,7 +97,7 @@ jobs:
     with:
       packages-directory: packages
       use-workspaces: true
-      include-root-package: false
+      include-root-package: ${{ inputs.include-root-package }}
       require-publish-config: false
       workspace-tools-source: ${{ inputs.workspace-tools-source || 'auto' }}
 
@@ -145,9 +150,11 @@ jobs:
       version-bump: ${{ needs.select-packages.outputs.version-bump }}
       exact-version: ${{ needs.select-packages.outputs.exact-version }}
       release-tag: ""
-      tag-prefix: ${{ format('{0}@', matrix.name) }}
-      release-name: ${{ format('{0} v$RESOLVED_VERSION', matrix.name) }}
-      changelog-path: ${{ format('{0}/CHANGELOG.md', matrix.directory) }}
-      package-name: ${{ matrix.name }}
-      package-directory: ${{ matrix.directory }}
+      # Root packages use conventional repository releases; workspace packages
+      # retain package-scoped tags and changelogs.
+      tag-prefix: ${{ matrix.directory == '.' && 'v' || format('{0}@', matrix.name) }}
+      release-name: ${{ matrix.directory == '.' && 'v$RESOLVED_VERSION' || format('{0} v$RESOLVED_VERSION', matrix.name) }}
+      changelog-path: ${{ matrix.directory == '.' && 'CHANGELOG.md' || format('{0}/CHANGELOG.md', matrix.directory) }}
+      package-name: ${{ matrix.directory == '.' && '' || matrix.name }}
+      package-directory: ${{ matrix.directory == '.' && '' || matrix.directory }}
       dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run || false }}
