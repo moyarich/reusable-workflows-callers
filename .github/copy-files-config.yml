@@ -71,8 +71,8 @@ repositories:
     profiles: [npm]
   - name: moyarich/JotebookSync
     profiles: [vscode]
-    # This VS Code extension has no apps/playground site or build:playground script.
-    exclude: [pages.yml]
+    # Root-level VS Code extension: no playground or publishable workspace packages.
+    exclude: [pages.yml, release-draft.yml]
   - name: moyarich/vscode-act-runner-local
     profiles: [vscode]
   - name: moyarich/dev-toolkit
