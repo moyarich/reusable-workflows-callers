@@ -155,6 +155,6 @@ jobs:
       tag-prefix: ${{ matrix.directory == '.' && 'v' || format('{0}@', matrix.name) }}
       release-name: ${{ matrix.directory == '.' && 'v$RESOLVED_VERSION' || format('{0} v$RESOLVED_VERSION', matrix.name) }}
       changelog-path: ${{ matrix.directory == '.' && 'CHANGELOG.md' || format('{0}/CHANGELOG.md', matrix.directory) }}
-      package-name: ${{ matrix.directory == '.' && '' || matrix.name }}
-      package-directory: ${{ matrix.directory == '.' && '' || matrix.directory }}
+      package-name: ${{ matrix.directory == '.' && 'root' || matrix.name }}
+      package-directory: ${{ matrix.directory }}
       dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run || false }}
